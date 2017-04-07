@@ -111,6 +111,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Gameboy.cpp" />
+    <ClCompile Include="primary_loop.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Gameboy.h" />
+    <ClInclude Include="Registers.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
