@@ -1,5 +1,6 @@
 #include <string>
 #include "Registers.h"
+#include "CPU.h"
 
 #pragma once
 
@@ -10,10 +11,12 @@ class Gameboy
 {
 	uint8_t			mem[GB_MEMSIZE];
 	RegisterBank	regs;
+	CPU				*cpu;
 
 public:
 	Gameboy();
 	// Load ROM from file into memory regions
 	bool loadROM(std::string filename);
+	void beginExec();
 
 };

@@ -34,14 +34,20 @@ bool Gameboy::loadROM(std::string filename)
 	romFile.seekg(0, ios::beg);
 
 
-	// PROBLEM: This is reading up until the 1A hex val, which is EOF in windows.
-	// SOLUTION: Ignore EOF and just read by size
-	cout << "Rom size: " << romSize << endl;
+	// Read ROM from beginning to romSize, ignoring any EOF
 	romFile.read((char*)this->mem, romSize);
 
-	cout << hex << "Byte should be 01 but is: " << (int)this->mem[32703] << endl;
 
 
 	romFile.close();
 	return true;
+}
+
+void Gameboy::beginExec()
+{
+	// TODO: Add check to see if ROM was actually loaded
+	cout << "Beginning execution of loaded ROM" << endl;
+
+	this->cpu = new CPU(this->mem, GB_MEMSIZE);
+	this->cpu->fetch_and_decode();
 }

@@ -9,7 +9,7 @@ int main(void)
 	// Load ROM into memspace
 
 	Gameboy gb;
-	auto res = gb.loadROM("C:\\Users\\Huandari\\Downloads\\Tetris (World)\\Tetris (World).gb");
+	auto res = gb.loadROM("C:\\Users\\hlope\\Downloads\\DMG_ROM.bin");
 	if (res)
 	{
 		cout << "ROM loaded successfully\n";
@@ -17,6 +17,8 @@ int main(void)
 	else {
 		cout << "FAILED ROM LOADING\n";
 	}
+
+	gb.beginExec();
 
 	getchar();
 }
