@@ -51,4 +51,7 @@ void Gameboy::beginExec()
 	this->cpu = new CPU(this->mem, GB_MEMSIZE);
 	this->cpu->fetch_and_decode();
 	this->cpu->fetch_and_decode();
+	this->cpu->fetch_and_decode();
+	this->cpu->fetch_and_decode();
+
 }
