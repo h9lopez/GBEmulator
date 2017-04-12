@@ -115,11 +115,13 @@
   <ItemGroup>
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="Gameboy.cpp" />
+    <ClCompile Include="Opcodes.cpp" />
     <ClCompile Include="primary_loop.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Gameboy.h" />
+    <ClInclude Include="Opcodes.h" />
     <ClInclude Include="Registers.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

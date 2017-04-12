@@ -10,7 +10,6 @@
 class Gameboy
 {
 	uint8_t			mem[GB_MEMSIZE];
-	RegisterBank	regs;
 	CPU				*cpu;
 
 public:
