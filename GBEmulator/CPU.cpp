@@ -28,12 +28,12 @@ uint8_t CPU::fetch_and_decode()
 	uint8_t opcode = this->mem[this->pc++];
 	
 	cout << hex << "Read opcode 0x" << static_cast<int>(opcode) << endl;
-	cout << "Looking for opcode handler in vtable" << endl;
+	cout << "\tLooking for opcode handler in vtable" << endl;
+	// Vector into the table to get function handler and size of full instruction (in case we need to fetch 1 or 2 more bytes before exec)
 	std::tie(instr_len, handler) = global_opcode_vtable[opcode];
 
-	// We got the length of the instruction in bytes from the global table
-	// so we read the rest of the bytes needed and encode them as 'arguments' in a single integer
-	// Although we just really need 16-bits more.
+
+	// Read the full amount of bytes necessary for instruction and encode them as arguments in single integer
 	instr_len--;
 	while (instr_len > 0)
 	{
@@ -43,10 +43,11 @@ uint8_t CPU::fetch_and_decode()
 		instr_len--;
 	}
 
-	cout << hex << "Encoded args: " << encoded_args << endl;
+	cout << hex << "\tEncoded args: " << encoded_args << endl;
+	cout << "\tDISPATCHING OPCODE HANDLER" << endl;
 
 	// After all arguments have been gotten, dispatch to the handler
 	handler(encoded_args);
-	cout << "End handler call" << endl;
+	cout << "End handler call" << endl << endl;
 	return opcode;
 }
