@@ -2,6 +2,9 @@
 #include "Registers.h"
 #pragma once
 
+#define LOW8_MASK(x) (x & 0xFF)
+#define HIGH8_MASK(x) ((x & 0xFF00) >> 8)
+
 typedef std::function<bool(RegisterBank *regs, unsigned int)> opcode_handle_func;
 
 // (int, functionptr) = length of instruction (in bytes), function pointer to handler

@@ -12,6 +12,10 @@ namespace OpcodeHandlers
 	{
 		cout << hex << "LD SP, d16 handler called. Encoded data is " << data << endl;
 		cout << dec << "PC in regbank is currently at " << static_cast<int>(regs->PC.word) << endl;
+		
+		// Load immediate in data (2 bytes) into register SP
+		regs->SP.lo = LOW8_MASK(data);
+		regs->SP.hi = HIGH8_MASK(data);
 		return true;
 	}
 
@@ -19,6 +23,7 @@ namespace OpcodeHandlers
 	{
 		cout << hex << "XOR A handler called, data is " << data << endl;
 		cout << dec << "PC in regbank is currently at " << static_cast<int>(regs->PC.word) << endl;
+		cout << hex << "SP is " << static_cast<int>(regs->SP.word) << endl;
 		return true;
 	}
 
