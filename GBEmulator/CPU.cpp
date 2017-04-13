@@ -31,7 +31,7 @@ uint8_t CPU::fetch_and_decode()
 	// Vector into the table to get function handler and size of full instruction (in case we need to fetch 1 or 2 more bytes before exec)
 	try
 	{
-		std::tie(instr_len, handler) = OpcodeHandlers::global_opcode_vtable.at(opcode);
+		std::tie(instr_len, handler) = global_opcode_vtable.at(opcode);
 	} catch (std::out_of_range &) {
 		cout << hex << "UNSUPPORTED OPCODE 0x" << static_cast<int>(opcode) << endl;
 		// TODO: Throw global exception to stop CPU?
@@ -52,7 +52,7 @@ uint8_t CPU::fetch_and_decode()
 	cout << "\tDISPATCHING OPCODE HANDLER" << endl;
 
 	// After all arguments have been gotten, dispatch to the handler
-	handler(&this->regs, encoded_args);
+	handler(encoded_args);
 	cout << "End handler call" << endl << endl;
 	return opcode;
 }
