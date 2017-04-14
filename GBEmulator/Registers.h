@@ -1,6 +1,7 @@
 #include <stdint.h>
 #pragma once
 
+typedef bool Flag;
 
 typedef union
 {
@@ -13,7 +14,10 @@ typedef union
 
 typedef struct {
 	uint8_t	A;
-	uint8_t	F;
+	Flag zero;
+	Flag subtract;
+	Flag half_carry;
+	Flag carry;
 	Register	BC;
 	Register	DE;
 	Register	HL;

@@ -30,12 +30,22 @@ public:
 protected:
 	// ================================ HELPERS ===============================
 	static inline void reg_store_immediate(Register *reg, unsigned int data);
+	// ========================== FLAG GETTERS/SETTERS ========================
+	inline void set_zero_flag(bool set);
+	inline void set_subtract_flag(bool set);
+	inline void set_half_carry_flag(bool set);
+	inline void set_carry_flag(bool set);
+	inline bool is_zero_flag_set();
+	inline bool is_subtract_flag_set();
+	inline bool is_half_carry_flag_set();
+	inline bool is_carry_flag_set();
 
 	// ================================ HANDLERS ==============================
 	void opcode_handle_ld_sp_imm(unsigned int data);
 	void opcode_handle_xor_a(unsigned int data);
 	void opcode_handle_ld_hl_imm(unsigned int data);
 	void opcode_handle_ld_hl_minus_a(unsigned int data);
+	void opcode_handle_bit_check(unsigned int data);
 
 
 	// ============================ OPCODE MAP ================================
@@ -44,6 +54,7 @@ protected:
 		{ 0x31,{ 3, [this](unsigned int a) {this->opcode_handle_ld_sp_imm(a);		} }},
 		{ 0xAF,{ 1, [this](unsigned int a) {this->opcode_handle_xor_a(a);			} } },
 		{ 0x21,{ 3, [this](unsigned int a) {this->opcode_handle_ld_hl_imm(a);		} } },
-		{ 0x32,{ 1, [this](unsigned int a) {this->opcode_handle_ld_hl_minus_a(a);	} } } 
+		{ 0x32,{ 1, [this](unsigned int a) {this->opcode_handle_ld_hl_minus_a(a);	} } },
+		{ 0xCB,{ 2, [this](unsigned int a) {this->opcode_handle_bit_check(a);		}}}
 	};
 };

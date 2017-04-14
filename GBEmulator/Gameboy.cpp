@@ -53,5 +53,6 @@ void Gameboy::beginExec()
 	this->cpu->fetch_and_decode();
 	this->cpu->fetch_and_decode();
 	this->cpu->fetch_and_decode();
+	this->cpu->fetch_and_decode();
 
 }
