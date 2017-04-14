@@ -30,6 +30,8 @@ public:
 protected:
 	// ================================ HELPERS ===============================
 	static inline void reg_store_immediate(Register *reg, unsigned int data);
+	inline uint8_t* decode_register_bits(unsigned int data);
+
 	// ========================== FLAG GETTERS/SETTERS ========================
 	inline void set_zero_flag(bool set);
 	inline void set_subtract_flag(bool set);

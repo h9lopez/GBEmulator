@@ -15,6 +15,29 @@ void CPU::reg_store_immediate(Register *reg, unsigned int data)
 	reg->hi = HIGH8_MASK(data);
 }
 
+inline uint8_t* CPU::decode_register_bits(unsigned int data)
+{
+	switch (data) {
+		case 0x0:
+			return &this->regs.BC.hi;
+		case 0x1:
+			return &this->regs.BC.lo;
+		case 0x2:
+			return &this->regs.DE.hi;
+		case 0x3:
+			return &this->regs.DE.lo;
+		case 0x4:
+			return &this->regs.HL.hi;
+		case 0x5:
+			return &this->regs.HL.lo;
+		case 0x6:
+			// TODO: Load from mem into temp reg
+		case 0x7:
+			return &this->regs.A;
+	}
+	return nullptr;
+}
+
 // =============== FLAG GETTERS/SETTERS ============================
 inline void CPU::set_zero_flag(bool set)
 {
@@ -98,6 +121,10 @@ void CPU::opcode_handle_bit_check(unsigned int data)
 	
 	// TODO: Implement efficient way to extract both target register and target bit
 	//		Actually, NOTE: Check that one colorful page with the things. Yeah. It's encoded
+	uint8_t* target_reg = this->decode_register_bits(data);
+	int target_bit = (data & 0x38) >> 3;
+
+	// TODO: Finish check
 
 	// Flag modifications:
 	// z-> opposite of what bit 7 is
