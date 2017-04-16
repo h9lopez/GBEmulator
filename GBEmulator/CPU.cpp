@@ -5,6 +5,11 @@ using namespace std;
 
 
 
+CPU::CPU()
+{
+	this->regs.PC.word = 0;
+}
+
 CPU::CPU(uint8_t *memLoc, int memSize)
 {
 	if (memLoc == nullptr)
@@ -55,4 +60,14 @@ uint8_t CPU::fetch_and_decode()
 	handler(encoded_args);
 	cout << "End handler call" << endl << endl;
 	return opcode;
+}
+
+void CPU::setMemoryLocation(uint8_t * memLoc, int memSize)
+{
+	if (memLoc == nullptr)
+	{
+		cout << "ERROR: ROM MEMORY POINTER NULL" << endl;
+	}
+	this->mem = memLoc;
+	this->mem_size = memSize;
 }

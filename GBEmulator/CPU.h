@@ -23,11 +23,12 @@ class CPU
 	RegisterBank regs;
 
 public:
+	CPU();
 	CPU(uint8_t *memPtr, int memSize);
 	uint8_t fetch_and_decode();
+	void setMemoryLocation(uint8_t *memPtr, int memSize);
 
 
-protected:
 	// ================================ HELPERS ===============================
 	static inline void reg_store_immediate(Register *reg, unsigned int data);
 	inline uint8_t* decode_register_bits(unsigned int data);
@@ -37,10 +38,10 @@ protected:
 	inline void set_subtract_flag(bool set);
 	inline void set_half_carry_flag(bool set);
 	inline void set_carry_flag(bool set);
-	inline bool is_zero_flag_set();
-	inline bool is_subtract_flag_set();
-	inline bool is_half_carry_flag_set();
-	inline bool is_carry_flag_set();
+	bool is_zero_flag_set();
+	bool is_subtract_flag_set();
+	bool is_half_carry_flag_set();
+	bool is_carry_flag_set();
 
 	// ================================ HANDLERS ==============================
 	void opcode_handle_ld_sp_imm(unsigned int data);

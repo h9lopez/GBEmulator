@@ -70,22 +70,22 @@ inline void CPU::set_carry_flag(bool set)
 	this->regs.carry = set;
 }
 
-inline bool CPU::is_zero_flag_set()
+bool CPU::is_zero_flag_set()
 {
 	return this->regs.zero;
 }
 
-inline bool CPU::is_subtract_flag_set()
+bool CPU::is_subtract_flag_set()
 {
 	return this->regs.subtract;
 }
 
-inline bool CPU::is_half_carry_flag_set()
+bool CPU::is_half_carry_flag_set()
 {
 	return this->regs.half_carry;
 }
 
-inline bool CPU::is_carry_flag_set()
+bool CPU::is_carry_flag_set()
 {
 	return this->regs.carry;
 }
