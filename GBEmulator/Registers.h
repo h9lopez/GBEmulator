@@ -7,13 +7,13 @@ typedef union
 {
 	uint16_t word;
 	struct {
-		uint8_t hi;
 		uint8_t lo;
+		uint8_t hi;
 	};
 } Register;
 
 typedef struct {
-	uint8_t	A;
+	Register	A; // only the lo byte in this register will be paid attention to
 	Flag zero;
 	Flag subtract;
 	Flag half_carry;

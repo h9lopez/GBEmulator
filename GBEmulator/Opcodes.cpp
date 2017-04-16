@@ -15,7 +15,7 @@ void CPU::reg_store_immediate(Register *reg, unsigned int data)
 	reg->lo = HIGH8_MASK(data);
 }
 
-inline uint8_t* CPU::decode_register_bits(unsigned int data)
+uint8_t* CPU::decode_register_bits(unsigned int data)
 {
 	switch (data) {
 		case 0x0:
@@ -37,35 +37,44 @@ inline uint8_t* CPU::decode_register_bits(unsigned int data)
 			cout << "\tRegister selecting L" << endl;
 			return &this->regs.HL.lo;
 		case 0x6:
-			cout << "ERROR: UNIMPLEMENTED - loading from (HL)" << endl;
-			// TODO: Load from mem into temp reg
-			return nullptr;
+			cout << hex << "\tRegister selecting (HL) - loading from mem addr " << static_cast<int>(regs.HL.word) << endl;
+			return &this->mem[regs.HL.word];
 		case 0x7:
 			cout << "\tRegister selecting A" << endl;
-			return &this->regs.A;
+			return &this->regs.A.lo;
 		default:
 			cout << hex << "ERROR: register encoding is not of proper type (" << static_cast<int>(data) << ")" << endl;
 	}
 	return nullptr;
 }
 
+uint8_t* CPU::get_mem_ptr()
+{
+	return this->mem;
+}
+
+RegisterBank* CPU::get_reg_bank()
+{
+	return &this->regs;
+}
+
 // =============== FLAG GETTERS/SETTERS ============================
-inline void CPU::set_zero_flag(bool set)
+void CPU::set_zero_flag(bool set)
 {
 	this->regs.zero = set;
 }
 
-inline void CPU::set_subtract_flag(bool set)
+void CPU::set_subtract_flag(bool set)
 {
 	this->regs.subtract = set;
 }
 
-inline void CPU::set_half_carry_flag(bool set)
+void CPU::set_half_carry_flag(bool set)
 {
 	this->regs.half_carry = set;
 }
 
-inline void CPU::set_carry_flag(bool set)
+void CPU::set_carry_flag(bool set)
 {
 	this->regs.carry = set;
 }
@@ -108,7 +117,7 @@ void CPU::opcode_handle_xor_a(unsigned int data)
 		
 	// A = A ^ A
 	// Reduced to A = 0 b/c a reg XOR'd by itself is always 0
-	this->regs.A = 0;
+	this->regs.A.word = 0;
 }
 
 void CPU::opcode_handle_ld_hl_imm(unsigned int data)
@@ -121,7 +130,7 @@ void CPU::opcode_handle_ld_hl_minus_a(unsigned int data)
 {
 	// LD (HL-), A; alternatively: LDD (HL), A
 	// (HL) <- A, HL--
-	mem[regs.HL.word] = regs.A;
+	mem[regs.HL.word] = regs.A.lo;
 	regs.HL.word--;
 }
 
