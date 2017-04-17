@@ -11,8 +11,8 @@ using namespace std;
 //		   i.e. implying the little-endian format of the Gameboy
 void CPU::reg_store_immediate(Register *reg, unsigned int data)
 {
-	reg->hi = LOW8_MASK(data);
-	reg->lo = HIGH8_MASK(data);
+	reg->hi = FIRST8_MASK(data);
+	reg->lo = SECOND8_MASK(data);
 }
 
 uint8_t* CPU::decode_register_bits(unsigned int data)
@@ -44,6 +44,25 @@ uint8_t* CPU::decode_register_bits(unsigned int data)
 			return &this->regs.A.lo;
 		default:
 			cout << hex << "ERROR: register encoding is not of proper type (" << static_cast<int>(data) << ")" << endl;
+	}
+	return nullptr;
+}
+
+Register* CPU::decode_16bit_register_bits(unsigned int data)
+{
+	switch (data) {
+		case 0x0: // BC
+			cout << "Selecting BC" << endl;
+			return &this->regs.BC;
+		case 0x1: // DE
+			cout << "Selecting DE" << endl;
+			return &this->regs.DE;
+		case 0x2: // HL
+			cout << "Selecting HL" << endl;
+			return &this->regs.HL;
+		case 0x3: // SP
+			cout << "Selecting SP" << endl;
+			return &this->regs.SP;
 	}
 	return nullptr;
 }
@@ -101,14 +120,6 @@ bool CPU::is_carry_flag_set()
 // =============== END FLAG GETTERS/SETTERS ============================
 
 
-void CPU::opcode_handle_ld_sp_imm(unsigned int data)
-{
-	cout << hex << "LD SP, d16 handler called. Encoded data is " << data << endl;
-	cout << dec << "PC in regbank is currently at " << static_cast<int>(regs.PC.word) << endl;
-		
-	// Load immediate in data (2 bytes) into register SP
-	reg_store_immediate(&this->regs.SP, data);
-}
 
 void CPU::opcode_handle_xor_a(unsigned int data)
 {
@@ -120,11 +131,6 @@ void CPU::opcode_handle_xor_a(unsigned int data)
 	this->regs.A.word = 0;
 }
 
-void CPU::opcode_handle_ld_hl_imm(unsigned int data)
-{
-	// Load imm in data (2 bytes) into register HL
-	reg_store_immediate(&this->regs.HL, data);
-}
 
 void CPU::opcode_handle_ld_hl_minus_a(unsigned int data)
 {
@@ -154,5 +160,21 @@ void CPU::opcode_handle_bit_check(unsigned int data)
 	this->set_zero_flag(!bit_on);
 	this->set_subtract_flag(false);
 	this->set_half_carry_flag(true);
+}
+
+void CPU::opcode_handle_ld_16bit_imm(unsigned int data)
+{
+	uint8_t opcode = THIRD8_MASK(data);
+	unsigned int immediate = data ^ (opcode << 16); // Get rid of that last byte to leave only first two
+
+	// Decode which register it's targeting
+	Register *target_reg = this->decode_16bit_register_bits( (opcode & 0x30) >> 4);
+	if (target_reg == nullptr)
+	{
+		cout << "UNKNOWN register destination " << ((opcode & 0x30) >> 4) << endl;
+		return;
+	}
+
+	reg_store_immediate(target_reg, immediate);
 }
 

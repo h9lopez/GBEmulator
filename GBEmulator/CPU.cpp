@@ -44,6 +44,7 @@ uint8_t CPU::fetch_and_decode()
 	}
 
 	// Read the full amount of bytes necessary for instruction and encode them as arguments in single integer
+	encoded_args = opcode;
 	instr_len--;
 	while (instr_len > 0)
 	{
