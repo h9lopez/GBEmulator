@@ -26,7 +26,8 @@ class CPU
 public:
 	CPU();
 	CPU(uint8_t *memPtr, int memSize);
-	uint8_t fetch_and_decode();
+	void decode_and_exec(uint8_t leading_opcode, unsigned int full_opcode);
+	unsigned int fetch_next();
 	void setMemoryLocation(uint8_t *memPtr, int memSize);
 
 
@@ -50,7 +51,7 @@ public:
 	bool is_carry_flag_set();
 
 	// ================================ HANDLERS ==============================
-	void opcode_handle_xor_a(unsigned int data);
+	void opcode_handle_xor(unsigned int data);
 	void opcode_handle_ld_hl_minus_a(unsigned int data);
 	void opcode_handle_bit_check(unsigned int data);
 	void opcode_handle_ld_16bit_imm(unsigned int data);
@@ -65,7 +66,17 @@ public:
 		{ 0x21,{ 3, [this](unsigned int a) {this->opcode_handle_ld_16bit_imm(a);	} } },
 		{ 0x31,{ 3, [this](unsigned int a) {this->opcode_handle_ld_16bit_imm(a);	} } },
 
-		{ 0xAF,{ 1, [this](unsigned int a) {this->opcode_handle_xor_a(a);			} } },
+		// XOR reg instructions
+		{ 0xA8,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+		{ 0xA9,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+		{ 0xAA,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+		{ 0xAB,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+		{ 0xAC,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+		{ 0xAD,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+		{ 0xAE,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+		{ 0xAF,{ 1, [this](unsigned int a) {this->opcode_handle_xor(a);				} } },
+
+
 		{ 0x32,{ 1, [this](unsigned int a) {this->opcode_handle_ld_hl_minus_a(a);	} } },
 		{ 0xCB,{ 2, [this](unsigned int a) {this->opcode_handle_bit_check(a);		}}}
 	};

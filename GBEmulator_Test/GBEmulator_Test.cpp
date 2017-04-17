@@ -147,6 +147,19 @@ TEST_F(OpcodesTest, Opcode_LoadImmediate16)
 	EXPECT_EQ(regs->BC.word, 0xFAAA);
 }
 
+TEST_F(OpcodesTest, Opcode_XorReg)
+{
+	RegisterBank *regs = gbcpu.get_reg_bank();
+
+	// Set reg A to a random value so that we can clear it later
+	regs->A.word = 0xCA;
+
+	gbcpu.opcode_handle_xor(0xAF);
+	EXPECT_EQ(regs->A.word, 0x0); // A^A=0 no matter what A is
+	// We also expect the zero flag to be set if the result is 0
+	EXPECT_TRUE(gbcpu.is_zero_flag_set());
+}
+
 int main(int argc, char *argv[])
 {
 	testing::InitGoogleTest(&argc, argv);

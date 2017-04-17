@@ -120,15 +120,21 @@ bool CPU::is_carry_flag_set()
 // =============== END FLAG GETTERS/SETTERS ============================
 
 
-
-void CPU::opcode_handle_xor_a(unsigned int data)
+void CPU::opcode_handle_xor(unsigned int data)
 {
-	cout << hex << "XOR A handler called, data is " << data << endl;
-	cout << dec << "PC in regbank is currently at " << static_cast<int>(regs.PC.word) << endl;
-		
-	// A = A ^ A
-	// Reduced to A = 0 b/c a reg XOR'd by itself is always 0
-	this->regs.A.word = 0;
+	// Decode the target register and get data ptr
+	uint8_t* target_reg = decode_register_bits(data & 0x7);
+
+	if (target_reg == nullptr)
+	{
+		cout << hex << "ERROR in decoding register bits " << static_cast<int>(data & 0x7) << endl;
+		return;
+	}
+
+	this->regs.A.lo = (*target_reg) ^ this->regs.A.lo;
+	
+	// Set the zero flag if the result is 0, unset if nonzero
+	this->set_zero_flag(this->regs.A.lo == 0x0);
 }
 
 

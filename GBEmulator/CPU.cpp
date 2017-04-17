@@ -22,7 +22,30 @@ CPU::CPU(uint8_t *memLoc, int memSize)
 }
 
 
-uint8_t CPU::fetch_and_decode()
+// NOTE: fully_opcode parameter can be multi-byte depending on the length of the instruction
+void CPU::decode_and_exec(uint8_t leading_opcode, unsigned int full_opcode)
+{
+	int instr_len;
+	opcode_handle_func handler;
+
+	// Grab the opcode handler associated with the leading opcode
+	try
+	{
+		std::tie(instr_len, handler) = global_opcode_vtable.at(leading_opcode);
+	}
+	catch (std::out_of_range &) {
+		cout << hex << "UNSUPPORTED OPCODE 0x" << static_cast<int>(leading_opcode) << endl;
+		// TODO: Throw global exception to stop CPU?
+		return;
+	}
+
+
+	// Call the handler
+	handler(full_opcode);
+
+}
+
+unsigned int CPU::fetch_next()
 {
 	int instr_len;
 	opcode_handle_func handler;
@@ -44,6 +67,8 @@ uint8_t CPU::fetch_and_decode()
 	}
 
 	// Read the full amount of bytes necessary for instruction and encode them as arguments in single integer
+	// TODO: Decouple instruction lengths from the global opcode vtable? Double access in here and
+	//		 then again in decode_and_execute()
 	encoded_args = opcode;
 	instr_len--;
 	while (instr_len > 0)
@@ -55,12 +80,7 @@ uint8_t CPU::fetch_and_decode()
 	}
 
 	cout << hex << "\tEncoded args: " << encoded_args << endl;
-	cout << "\tDISPATCHING OPCODE HANDLER" << endl;
-
-	// After all arguments have been gotten, dispatch to the handler
-	handler(encoded_args);
-	cout << "End handler call" << endl << endl;
-	return opcode;
+	return encoded_args;
 }
 
 void CPU::setMemoryLocation(uint8_t * memLoc, int memSize)
