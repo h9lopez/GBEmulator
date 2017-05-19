@@ -22,7 +22,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{9CE07461-7268-45CF-9AA9-9725D8B70B65}</ProjectGuid>
     <RootNamespace>GBEmulator</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -125,7 +125,6 @@
   <ItemGroup>
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Gameboy.h" />
-    <ClInclude Include="Opcodes.h" />
     <ClInclude Include="Registers.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

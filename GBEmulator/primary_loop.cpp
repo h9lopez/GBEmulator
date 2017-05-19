@@ -9,7 +9,7 @@ int main(void)
 	// Load ROM into memspace
 
 	Gameboy gb;
-	auto res = gb.loadROM("C:\\Users\\Huandari\\Downloads\\DMG_ROM.bin");
+	auto res = gb.loadROM("C:\\Users\\hlope\\Downloads\\dummy.bin");
 	if (res)
 	{
 		cout << "ROM loaded successfully\n";
