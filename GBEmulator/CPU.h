@@ -21,11 +21,13 @@ public:
 	CPU();
 	CPU(uint8_t *memPtr, int memSize);
 	void cpu_cycle();
+	void handle_cb_prefix();
 	void setMemoryLocation(uint8_t *memPtr, int memSize);
 
 
 	// ================================ HELPERS ===============================
 	inline uint16_t READ_ROM_2BYTE();
+	inline void WRITE_MEM_BYTE(Register addr, uint8_t val);
 
 	// ========================== CLASS VARS GETTERS/SETTERS ==================
 	uint8_t* get_mem_ptr();
@@ -44,6 +46,7 @@ public:
 	// =======================HANDLERS 2.0=====================================
 	inline void opcode_handle_xor(uint8_t regval);
 	inline void reg_store_immediate(Register *reg, unsigned int data);
+	inline void check_bit(uint8_t val, unsigned int bitn);
 
 
 };

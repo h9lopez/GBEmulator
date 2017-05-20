@@ -61,30 +61,3 @@ bool CPU::is_carry_flag_set()
 	return this->regs.carry;
 }
 // =============== END FLAG GETTERS/SETTERS ============================
-
-
-
-
-
-//void CPU::opcode_handle_bit_check(unsigned int data)
-//{
-//	// NOTE: This is an all-encompassing method, i.e. we need to check second byte to
-//	//		 check which register we're looking at/which bit we're checking
-//	
-//	uint8_t* target_reg = this->decode_register_bits(data & 0x7);
-//	int target_bit = (data & 0x38) >> 3;
-//
-//	uint8_t tempreg = *target_reg;
-//	bool bit_on = (tempreg >> target_bit) & 0x1;
-//	
-//	cout << "\tBit " << (target_bit) << " is " << (bit_on ? "on" : "off") << endl;
-//	// Flag modifications:
-//	// z-> opposite of what bit 7 is
-//	// n-> 0
-//	// h-> 1
-//	// z-> left alone
-//	this->set_zero_flag(!bit_on);
-//	this->set_subtract_flag(false);
-//	this->set_half_carry_flag(true);
-//}
-

@@ -101,26 +101,26 @@ TEST_F(OpcodesTest, DecodeRegisterEncoding)
 //	ASSERT_EQ(gbcpu.is_carry_flag_set(), old_carry_flag);
 //}
 
-TEST_F(OpcodesTest, Opcode_LoadImmediate16)
-{
-	RegisterBank *regs = gbcpu.get_reg_bank();
-
-	// LD SP, imm
-	gbcpu.opcode_handle_ld_16bit_imm(0x31FECA);
-	EXPECT_EQ(regs->SP.word, 0xCAFE);
-
-	// LD HL, imm
-	gbcpu.opcode_handle_ld_16bit_imm(0x21CDAB);
-	EXPECT_EQ(regs->HL.word, 0xABCD);
-
-	// LD DE, imm
-	gbcpu.opcode_handle_ld_16bit_imm(0x11BEBA);
-	EXPECT_EQ(regs->DE.word, 0xBABE);
-
-	// LD BC, imm
-	gbcpu.opcode_handle_ld_16bit_imm(0x01AAFA);
-	EXPECT_EQ(regs->BC.word, 0xFAAA);
-}
+//TEST_F(OpcodesTest, Opcode_LoadImmediate16)
+//{
+//	RegisterBank *regs = gbcpu.get_reg_bank();
+//
+//	// LD SP, imm
+//	gbcpu.opcode_handle_ld_16bit_imm(0x31FECA);
+//	EXPECT_EQ(regs->SP.word, 0xCAFE);
+//
+//	// LD HL, imm
+//	gbcpu.opcode_handle_ld_16bit_imm(0x21CDAB);
+//	EXPECT_EQ(regs->HL.word, 0xABCD);
+//
+//	// LD DE, imm
+//	gbcpu.opcode_handle_ld_16bit_imm(0x11BEBA);
+//	EXPECT_EQ(regs->DE.word, 0xBABE);
+//
+//	// LD BC, imm
+//	gbcpu.opcode_handle_ld_16bit_imm(0x01AAFA);
+//	EXPECT_EQ(regs->BC.word, 0xFAAA);
+//}
 
 TEST_F(OpcodesTest, Opcode_XorReg)
 {
