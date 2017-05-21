@@ -30,6 +30,10 @@ void CPU::setMemoryLocation(uint8_t * memLoc, int memSize)
 	this->mem_size = memSize;
 }
 
+inline uint8_t CPU::READ_ROM_BYTE()
+{
+	return mem[regs.PC.word++];
+}
 
 inline uint16_t CPU::READ_ROM_2BYTE()
 {
@@ -42,6 +46,11 @@ inline uint16_t CPU::READ_ROM_2BYTE()
 inline void CPU::WRITE_MEM_BYTE(Register addr, uint8_t val)
 {
 	mem[addr.word] = val;
+}
+
+inline void CPU::INC_CYCLE_COUNT(unsigned int num)
+{
+	this->cycle_count += num;
 }
 
 
@@ -86,72 +95,137 @@ void CPU::cpu_cycle()
 	// Grab an opcode first
 	uint8_t opcode = 0x76;
 	
-	cout << "CPU Cycle Begin" << endl;
 	opcode = this->mem[this->regs.PC.word++];
 	// Switch statement into the proper instruction handler
 	switch (opcode)
 	{
+		// JR Jump Relative
+		case 0x20: // JR NZ, r8
+			if (!is_zero_flag_set()) {
+				// Jump
+				regs.PC.word += READ_ROM_BYTE();
+				INC_CYCLE_COUNT(12);
+			}
+			else {
+				INC_CYCLE_COUNT(8);
+			}
+			break;
+		case 0x30: // JR NC, r8
+			if (!is_carry_flag_set()) {
+				regs.PC.word += READ_ROM_BYTE();
+				INC_CYCLE_COUNT(12);
+			}
+			else {
+				INC_CYCLE_COUNT(8);
+			}
+			break;
+		case 0x18: // JR r8	   
+			regs.PC.word += READ_ROM_BYTE();
+			INC_CYCLE_COUNT(12);
+			break;
+		case 0x28: // JR Z, r8 
+			if (is_zero_flag_set()) {
+				regs.PC.word += READ_ROM_BYTE();
+				INC_CYCLE_COUNT(12);
+			}
+			else {
+				INC_CYCLE_COUNT(8);
+			}
+			break;
+		case 0x38: // JR C, r8 
+			if (is_carry_flag_set()) {
+				regs.PC.word += READ_ROM_BYTE();
+				INC_CYCLE_COUNT(12);
+			}
+			else {
+				INC_CYCLE_COUNT(8);
+			}
+			break;
+
+
+
 		// 16-bit immediate load into 16-bit regs
 		case 0x01:
-			// TODO: Second parameter is wrong. Needs to be 2 BYTES not just the 1
 			reg_store_immediate(&this->regs.BC, READ_ROM_2BYTE());
+			INC_CYCLE_COUNT(12);
 			break;
 		case 0x11:
 			reg_store_immediate(&this->regs.DE, READ_ROM_2BYTE());
+			INC_CYCLE_COUNT(12);
 			break;
 		case 0x21:
 			reg_store_immediate(&this->regs.HL, READ_ROM_2BYTE());
+			INC_CYCLE_COUNT(12);
 			break;
 		case 0x31:
 			reg_store_immediate(&this->regs.SP, READ_ROM_2BYTE());
+			INC_CYCLE_COUNT(12);
 			break;
 
 		// XOR instructions
 		case 0xA8:
 			opcode_handle_xor(this->regs.BC.hi);
+			INC_CYCLE_COUNT(4);
 			break;
 		case 0xA9:
 			opcode_handle_xor(this->regs.BC.lo);
+			INC_CYCLE_COUNT(4);
 			break;
 		case 0xAA:
 			opcode_handle_xor(this->regs.DE.hi);
+			INC_CYCLE_COUNT(4);
 			break;
 		case 0xAB:
 			opcode_handle_xor(this->regs.DE.lo);
+			INC_CYCLE_COUNT(4);
 			break;
 		case 0xAC:
 			opcode_handle_xor(this->regs.HL.hi);
+			INC_CYCLE_COUNT(4);
 			break;
 		case 0xAD:
 			opcode_handle_xor(this->regs.HL.lo);
+			INC_CYCLE_COUNT(4);
 			break;
 		case 0xAE:
 			opcode_handle_xor(READ_MEM_BYTE(regs.HL));
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0xAF:
 			opcode_handle_xor(this->regs.A.lo);
+			INC_CYCLE_COUNT(4);
 			break;
 
 		// LD (16REG), A
 		case 0x02:
 			WRITE_MEM_BYTE(regs.BC, regs.A.lo);
+			INC_CYCLE_COUNT(8);
+			break;
 		case 0x12:
 			WRITE_MEM_BYTE(regs.DE, regs.A.lo);
+			INC_CYCLE_COUNT(8);
+			break;
 		case 0x22:
 			WRITE_MEM_BYTE(regs.HL, regs.A.lo);
 			regs.HL.word++;
+			INC_CYCLE_COUNT(8);
+			break;
 		case 0x32:
 			WRITE_MEM_BYTE(regs.HL, regs.A.lo);
 			regs.HL.word--;
+			INC_CYCLE_COUNT(8);
+			break;
 
 
-		// NEXT: Bit checking instructions?
 		// Pretty big section. All the CB-prefixed instructions
 		case 0xCB:
 			handle_cb_prefix();
 
+
+
 		// HALT Instruction
 		case 0x76:
+			INC_CYCLE_COUNT(4);
 			cout << "CPU Power Down" << endl;
 			exit(0);
 
@@ -166,6 +240,9 @@ void CPU::cpu_cycle()
 void CPU::handle_cb_prefix()
 {
 	uint8_t next_op = mem[regs.PC.word++];
+
+	// ALL CB-prefixed instructions take at LEAST 8 cycles, add 8 more if it's 16 
+	INC_CYCLE_COUNT(8);
 
 	switch (next_op)
 	{
@@ -191,6 +268,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x46:
 			check_bit(READ_MEM_BYTE(regs.HL), 0);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x47:
 			check_bit(regs.A.lo, 0);
@@ -215,6 +293,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x4E:
 			check_bit(READ_MEM_BYTE(regs.HL), 1);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x4F:
 			check_bit(regs.A.lo, 1);
@@ -240,6 +319,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x56:
 			check_bit(READ_MEM_BYTE(regs.HL), 2);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x57:
 			check_bit(regs.A.lo, 2);
@@ -264,6 +344,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x5E:
 			check_bit(READ_MEM_BYTE(regs.HL), 3);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x5F:
 			check_bit(regs.A.lo, 3);
@@ -289,6 +370,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x66:
 			check_bit(READ_MEM_BYTE(regs.HL), 4);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x67:
 			check_bit(regs.A.lo, 4);
@@ -313,6 +395,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x6E:
 			check_bit(READ_MEM_BYTE(regs.HL), 5);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x6F:
 			check_bit(regs.A.lo, 5);
@@ -338,6 +421,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x76:
 			check_bit(READ_MEM_BYTE(regs.HL), 6);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x77:
 			check_bit(regs.A.lo, 6);
@@ -362,6 +446,7 @@ void CPU::handle_cb_prefix()
 			break;
 		case 0x7E:
 			check_bit(READ_MEM_BYTE(regs.HL), 7);
+			INC_CYCLE_COUNT(8);
 			break;
 		case 0x7F:
 			check_bit(regs.A.lo, 7);

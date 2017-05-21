@@ -49,11 +49,10 @@ void Gameboy::beginExec()
 	cout << "Beginning execution of loaded ROM" << endl;
 
 	this->cpu = new CPU(this->mem, GB_MEMSIZE);
-	this->cpu->cpu_cycle();
-	//this->cpu->fetch_and_decode();
-	//this->cpu->fetch_and_decode();
-	//this->cpu->fetch_and_decode();
-	//this->cpu->fetch_and_decode();
-	//this->cpu->fetch_and_decode();
+
+	for (;;)
+	{
+		this->cpu->cpu_cycle();
+	}
 
 }

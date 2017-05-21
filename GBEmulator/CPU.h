@@ -16,6 +16,7 @@ class CPU
 	uint8_t *mem;
 	int mem_size;
 	RegisterBank regs;
+	unsigned long cycle_count;
 
 public:
 	CPU();
@@ -27,6 +28,8 @@ public:
 
 	// ================================ HELPERS ===============================
 	inline uint16_t READ_ROM_2BYTE();
+	inline uint8_t  READ_ROM_BYTE();
+	inline void INC_CYCLE_COUNT(unsigned int num);
 	inline void WRITE_MEM_BYTE(Register addr, uint8_t val);
 
 	// ========================== CLASS VARS GETTERS/SETTERS ==================
