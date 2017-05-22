@@ -1,4 +1,5 @@
 #include "CPU.h"
+#include "ReverseOpcodeMap.h"
 #include <iostream>
 using namespace std;
 
@@ -37,7 +38,6 @@ inline uint8_t CPU::READ_ROM_BYTE()
 
 inline uint16_t CPU::READ_ROM_2BYTE()
 {
-	//uint16_t res = (uint16_t)mem[regs.PC.word];
 	uint16_t res = ((uint16_t*)(mem + regs.PC.word))[0];
 	regs.PC.word += 2;
 	return res;
@@ -96,6 +96,8 @@ void CPU::cpu_cycle()
 	uint8_t opcode = 0x76;
 	
 	opcode = this->mem[this->regs.PC.word++];
+	cout << hex << "OPCODE: " << static_cast<int>(opcode) << endl;
+	cout << "\tINSTR: " << GENERATED_MAIN_INSTRUCTION_NAMES[opcode] << endl;
 	// Switch statement into the proper instruction handler
 	switch (opcode)
 	{
@@ -220,6 +222,7 @@ void CPU::cpu_cycle()
 		// Pretty big section. All the CB-prefixed instructions
 		case 0xCB:
 			handle_cb_prefix();
+			break;
 
 
 
@@ -230,6 +233,8 @@ void CPU::cpu_cycle()
 			exit(0);
 
 		default:
+			cout << "UNKNOWN OPCODE, exiting" << endl;
+			exit(1);
 			break;
 	}
 
@@ -240,6 +245,8 @@ void CPU::cpu_cycle()
 void CPU::handle_cb_prefix()
 {
 	uint8_t next_op = mem[regs.PC.word++];
+
+	cout << "\tREAL INSTR: " << GENERATED_CB_INSTRUCTION_NAMES[next_op] << endl;
 
 	// ALL CB-prefixed instructions take at LEAST 8 cycles, add 8 more if it's 16 
 	INC_CYCLE_COUNT(8);

@@ -126,6 +126,7 @@
     <ClInclude Include="CPU.h" />
     <ClInclude Include="Gameboy.h" />
     <ClInclude Include="Registers.h" />
+    <ClInclude Include="ReverseOpcodeMap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
