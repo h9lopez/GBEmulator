@@ -222,6 +222,39 @@ void CPU::cpu_cycle()
 			INC_CYCLE_COUNT(8);
 			break;
 
+		// LD REG, d8 instructions 
+		case 0x06:
+			regs.BC.hi = READ_ROM_BYTE();
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x16:
+			regs.DE.hi = READ_ROM_BYTE();
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x26:
+			regs.HL.hi = READ_ROM_BYTE();
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x36:
+			WRITE_MEM_BYTE(regs.HL, READ_ROM_BYTE());
+			INC_CYCLE_COUNT(12);
+			break;
+		case 0x0E:
+			regs.BC.lo = READ_ROM_BYTE();
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x1E:
+			regs.DE.lo = READ_ROM_BYTE();
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x2E:
+			regs.HL.lo = READ_ROM_BYTE();
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x3E:
+			regs.A.lo = READ_ROM_BYTE();
+			INC_CYCLE_COUNT(8);
+			break;
 
 		// Pretty big section. All the CB-prefixed instructions
 		case 0xCB:
