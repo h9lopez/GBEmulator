@@ -8,6 +8,7 @@ using namespace std;
 
 Gameboy::Gameboy()
 {
+	memset(this->mem, 0xFF, GB_MEMSIZE);
 }
 
 // Load ROM from file into memory regions

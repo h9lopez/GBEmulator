@@ -63,8 +63,8 @@ inline void CPU::INC_CYCLE_COUNT(unsigned int num)
 // ============================================================================
 inline void CPU::reg_store_immediate(Register *reg, unsigned int data)
 {
-	reg->hi = FIRST8_MASK(data);
-	reg->lo = SECOND8_MASK(data);
+	reg->lo = FIRST8_MASK(data);
+	reg->hi = SECOND8_MASK(data);
 }
 
 inline void CPU::check_bit(uint8_t val, unsigned int bitn)
@@ -105,11 +105,12 @@ void CPU::cpu_cycle()
 		case 0x20: // JR NZ, r8
 			if (!is_zero_flag_set()) {
 				// Jump
-				regs.PC.word += READ_ROM_BYTE();
+				regs.PC.word += static_cast<int8_t>(READ_ROM_BYTE());
 				INC_CYCLE_COUNT(12);
 			}
 			else {
 				INC_CYCLE_COUNT(8);
+				regs.PC.word++; // Skip reading the PC offset since we're not taking the branch
 			}
 			break;
 		case 0x30: // JR NC, r8
@@ -119,6 +120,7 @@ void CPU::cpu_cycle()
 			}
 			else {
 				INC_CYCLE_COUNT(8);
+				regs.PC.word++;
 			}
 			break;
 		case 0x18: // JR r8	   
@@ -132,6 +134,7 @@ void CPU::cpu_cycle()
 			}
 			else {
 				INC_CYCLE_COUNT(8);
+				regs.PC.word++;
 			}
 			break;
 		case 0x38: // JR C, r8 
@@ -141,6 +144,7 @@ void CPU::cpu_cycle()
 			}
 			else {
 				INC_CYCLE_COUNT(8);
+				regs.PC.word++;
 			}
 			break;
 
@@ -234,6 +238,10 @@ void CPU::cpu_cycle()
 
 		default:
 			cout << "UNKNOWN OPCODE, exiting" << endl;
+			cout << "===OPCODE IS: " << GENERATED_MAIN_INSTRUCTION_NAMES[opcode] << endl;
+			cout << dec << "===PC IS: " << regs.PC.word << endl;
+			cout << hex << "===Real Opcode Hex: " << static_cast<int>(opcode) << endl;
+			getchar();
 			exit(1);
 			break;
 	}
