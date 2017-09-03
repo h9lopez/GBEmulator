@@ -31,6 +31,11 @@ public:
 	inline uint8_t  READ_ROM_BYTE();
 	inline void INC_CYCLE_COUNT(unsigned int num);
 	inline void WRITE_MEM_BYTE(Register addr, uint8_t val);
+	inline void WRITE_MEM_BYTE(uint16_t addr, uint8_t val);
+	inline uint8_t READ_MEM_BYTE(Register reg);
+	inline uint8_t READ_MEM_BYTE(uint16_t addr);
+	inline uint8_t* GET_MEM_PTR(Register reg);
+
 
 	// ========================== CLASS VARS GETTERS/SETTERS ==================
 	uint8_t* get_mem_ptr();
@@ -50,6 +55,6 @@ public:
 	inline void opcode_handle_xor(uint8_t regval);
 	inline void reg_store_immediate(Register *reg, unsigned int data);
 	inline void check_bit(uint8_t val, unsigned int bitn);
-
-
+	inline void opcode_handle_inc_8bit(uint8_t *target);
+	inline void CPU::opcode_handle_dec_8bit(uint8_t *target);
 };

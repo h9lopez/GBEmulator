@@ -3,8 +3,6 @@
 #include <iostream>
 using namespace std;
 
-#define READ_MEM_BYTE(REG) ((mem[REG.word]))
-
 CPU::CPU()
 {
 	this->regs.PC.word = 0;
@@ -48,11 +46,30 @@ inline void CPU::WRITE_MEM_BYTE(Register addr, uint8_t val)
 	mem[addr.word] = val;
 }
 
+inline void CPU::WRITE_MEM_BYTE(uint16_t addr, uint8_t val)
+{
+	mem[addr] = val;
+}
+
 inline void CPU::INC_CYCLE_COUNT(unsigned int num)
 {
 	this->cycle_count += num;
 }
 
+inline uint8_t CPU::READ_MEM_BYTE(Register reg)
+{
+	return mem[reg.word];
+}
+
+inline uint8_t CPU::READ_MEM_BYTE(uint16_t addr)
+{
+	return mem[addr];
+}
+
+inline uint8_t* CPU::GET_MEM_PTR(Register reg)
+{
+	return mem + reg.word;
+}
 
 // ============================================================================
 // ============================================================================
@@ -84,6 +101,30 @@ inline void CPU::opcode_handle_xor(uint8_t regval)
 	this->set_zero_flag(this->regs.A.lo == 0x0);
 }
 
+inline void CPU::opcode_handle_inc_8bit(uint8_t *target)
+{
+	(*target)++;
+	
+	if ( (*target) == 0 ) {
+		this->set_zero_flag(true);
+	}
+	this->set_subtract_flag(false);
+	// TODO: Unsure what spec means by setting H if bit 3 carried
+	this->set_half_carry_flag(false);
+}
+
+inline void CPU::opcode_handle_dec_8bit(uint8_t *target)
+{
+	
+	(*target)--;
+
+	if ( (*target) == 0 ) {
+		this->set_zero_flag(true);
+	}
+	this->set_subtract_flag(true);
+	// TODO: Again unsure of half carry flag
+	this->set_half_carry_flag(  );	
+}
 
 // ============================================================================
 // =======================END HANDLERS=========================================
@@ -94,10 +135,11 @@ void CPU::cpu_cycle()
 {
 	// Grab an opcode first
 	uint8_t opcode = 0x76;
+	uint16_t target_addr = 0x0;
 	
 	opcode = this->mem[this->regs.PC.word++];
-	cout << hex << "OPCODE: " << static_cast<int>(opcode) << endl;
-	cout << "\tINSTR: " << GENERATED_MAIN_INSTRUCTION_NAMES[opcode] << endl;
+	//cout << hex << "OPCODE: " << static_cast<int>(opcode) << endl;
+	//cout << "\tINSTR: " << GENERATED_MAIN_INSTRUCTION_NAMES[opcode] << endl;
 	// Switch statement into the proper instruction handler
 	switch (opcode)
 	{
@@ -167,6 +209,136 @@ void CPU::cpu_cycle()
 			reg_store_immediate(&this->regs.SP, READ_ROM_2BYTE());
 			INC_CYCLE_COUNT(12);
 			break;
+
+		// INC increment instructions (all)
+		case 0x03:
+			// INC BC 8 cycles
+			regs.BC.word++;
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x13:
+			// INC DE 8 cycles
+			regs.DE.word++;
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x23:
+			// INC HL 8 cycles
+			regs.HL.word++;
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x33:
+			// INC SP 8 cycles
+			regs.SP.word++;
+			INC_CYCLE_COUNT(8);
+			break;
+
+		case 0x04:
+			// INC B 4 cycles
+			opcode_handle_inc_8bit(&regs.BC.hi);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x14:
+			// INC D 4 cycles
+			opcode_handle_inc_8bit(&regs.DE.hi);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x24:
+			// INC H 4 cycles
+			opcode_handle_inc_8bit(&regs.HL.hi);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x34:
+			// INC (HL) 12 cycles
+			opcode_handle_inc_8bit(GET_MEM_PTR(regs.HL));
+			INC_CYCLE_COUNT(12);
+			break;
+		
+		case 0x0C:
+			// INC C 4 cycles
+			opcode_handle_inc_8bit(&regs.BC.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x1C:
+			// INC E 4 cycles
+			opcode_handle_inc_8bit(&regs.DE.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x2C:
+			// INC L 4 cycles
+			opcode_handle_inc_8bit(&regs.HL.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x3C:
+			// INC A 4 cycles
+			opcode_handle_inc_8bit(&regs.A.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		
+		// DEC instructions (all)
+		case 0x05:
+			// DEC B - 4c
+			opcode_handle_dec_8bit(&regs.BC.hi);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x15:
+			// DEC D - 4c
+			opcode_handle_dec_8bit(&regs.DE.hi);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x25:
+			// DEC H - 4c
+			opcode_handle_dec_8bit(&regs.HL.hi);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x35:
+			// DEC (HL) - 12c
+			opcode_handle_dec_8bit(GET_MEM_PTR(regs.HL));
+			INC_CYCLE_COUNT(12);
+			break;
+
+		// 16 bit reg decrements
+		case 0x0B:
+			// DEC BC - 8c
+			regs.BC.word--;
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x1B:
+			// DEC DE - 8c
+			regs.DE.word--;
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x2B:
+			// DEC HL - 8c
+			regs.HL.word--;
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0x3B:
+			// DEC SP - 8c
+			regs.SP.word--;
+			INC_CYCLE_COUNT(8);
+			break;
+
+		case 0x0D:
+			// DEC C - 4c
+			opcode_handle_dec_8bit(&regs.BC.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x1D:
+			// DEC E - 4c
+			opcode_handle_dec_8bit(&regs.DE.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x2D:
+			// DEC L - 4c
+			opcode_handle_dec_8bit(&regs.HL.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		case 0x3D:
+			// DEC A - 4c
+			opcode_handle_dec_8bit(&regs.A.lo);
+			INC_CYCLE_COUNT(4);
+			break;
+		
 
 		// XOR instructions
 		case 0xA8:
@@ -256,6 +428,21 @@ void CPU::cpu_cycle()
 			INC_CYCLE_COUNT(8);
 			break;
 
+		
+		// I/O PORT Read/Write instructions
+		case 0xE2:
+			// LD ($FF00+C), A
+			WRITE_MEM_BYTE(0xFF00 + regs.BC.lo, regs.A.lo);
+			INC_CYCLE_COUNT(8);
+			break;
+		case 0xF2:
+			// LD A, ($FF00+C)
+			regs.A.lo = READ_MEM_BYTE(0xFF00 + regs.BC.lo);
+			INC_CYCLE_COUNT(8);
+			break;
+
+
+
 		// Pretty big section. All the CB-prefixed instructions
 		case 0xCB:
 			handle_cb_prefix();
@@ -287,7 +474,7 @@ void CPU::handle_cb_prefix()
 {
 	uint8_t next_op = mem[regs.PC.word++];
 
-	cout << "\tREAL INSTR: " << GENERATED_CB_INSTRUCTION_NAMES[next_op] << endl;
+	//cout << "\tREAL INSTR: " << GENERATED_CB_INSTRUCTION_NAMES[next_op] << endl;
 
 	// ALL CB-prefixed instructions take at LEAST 8 cycles, add 8 more if it's 16 
 	INC_CYCLE_COUNT(8);
