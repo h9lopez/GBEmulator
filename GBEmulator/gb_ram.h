@@ -2,9 +2,16 @@
 #define INCLUDED_GB_RAM
 
 #include "gb_typeutils.h"
+#include <array>
+#include <iterator>
 
 class RAM
 {
+private:
+	static const int MEMSIZE = 0xFFF;
+	typedef std::array<uint8_t, MEMSIZE> Container;
+	typedef Container::iterator IT;
+
 public:
     RAM();
 
@@ -14,15 +21,30 @@ public:
     void writeByte(Address addr, ByteType val);
     void writeWord(Address addr, WordType val);
 
-	bool copyRangeFromBuffer(const char *arr, size_t begin, size_t len);
+	template<typename Iter>
+	bool copyRangeFromBuffer(Iter begin, Iter end, IT memTarget);
+
+	// Getters 
+	IT begin();
+	IT end();
 
 private:
-    static const int MEMSIZE = 0xFFF;
-    
-    typedef uint8_t* Container;
-
     Container d_mem;
     int d_size;
 };
+
+
+template<typename Iter>
+bool RAM::copyRangeFromBuffer(Iter fBegin, Iter fEnd, RAM::IT memTarget)
+{
+	if (fBegin == fEnd || memTarget == this->end())
+	{
+		return false;
+	}
+
+	std::copy(fBegin, fEnd, memTarget);
+	return true;
+}
+
 
 #endif

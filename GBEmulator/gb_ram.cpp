@@ -1,4 +1,6 @@
 #include "gb_ram.h"
+#include <algorithm>
+#include <iterator>
 
 RAM::RAM()
 {}
@@ -23,18 +25,12 @@ void RAM::writeWord(Address addr, WordType val)
 	((WordType*)d_mem[addr])[0] = val;
 }
 
-bool RAM::copyRangeFromBuffer(const char * arr, size_t begin, size_t len)
+RAM::IT RAM::begin()
 {
-	if (!arr || begin < 0) {
-		return false;
-	}
-	if ((begin + len) >= MEMSIZE) {
-		return false;
-	}
+	return std::begin(d_mem);
+}
 
-	for (size_t i = begin; i < len && i < MEMSIZE; ++i)
-	{
-		d_mem[i] = arr[i];
-	}
-	return true;
+RAM::IT RAM::end()
+{
+	return std::end(d_mem);
 }

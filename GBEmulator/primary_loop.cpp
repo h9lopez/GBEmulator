@@ -13,9 +13,9 @@ int main(void)
 
 	RAM ram;
 	RegBank regs;
-
-	auto res = ROMLoader::fromFile(bootROM, ram);
-	if (res)
+	
+	cout << "Attempting to load boot ROM" << '\n';
+	if (ROMLoader::fromFile(bootROM, ram))
 	{
 		cout << "ROM loaded successfully\n";
 	}
@@ -25,4 +25,5 @@ int main(void)
 
 	CPUCore core(ram, regs);
 	core.cycle();
+
 }
