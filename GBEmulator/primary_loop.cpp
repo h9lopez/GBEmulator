@@ -1,16 +1,20 @@
 #include <iostream>
-#include "Gameboy.h"
+#include "CPUCore.h"
+#include "gb_rom.h"
 using namespace std;
 
 int main(void)
 {
+	static std::string bootROM = "C:\\Users\\hlope\\Downloads\\DMG_ROM.bin";
 	// Initialize datamem and registers
 
 	// Load ROM into memspace
 
-	Gameboy gb;
-	//auto res = gb.loadROM("C:\\Users\\hlope\\Downloads\\dummy.bin");
-	auto res = gb.loadROM("C:\\Users\\hlope\\Downloads\\DMG_ROM.bin");
+
+	RAM ram;
+	RegBank regs;
+
+	auto res = ROMLoader::fromFile(bootROM, ram);
 	if (res)
 	{
 		cout << "ROM loaded successfully\n";
@@ -19,5 +23,6 @@ int main(void)
 		cout << "FAILED ROM LOADING\n";
 	}
 
-	gb.beginExec();
+	CPUCore core(ram, regs);
+	core.cycle();
 }

@@ -123,7 +123,7 @@ inline void CPU::opcode_handle_dec_8bit(uint8_t *target)
 	}
 	this->set_subtract_flag(true);
 	// TODO: Again unsure of half carry flag
-	this->set_half_carry_flag(  );	
+	//this->set_half_carry_flag(  );	
 }
 
 // ============================================================================

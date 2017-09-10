@@ -91,11 +91,11 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>C:\Users\Huandari\Source\Repos\googletest\googletest\include; ..\GBEmulator\</AdditionalIncludeDirectories>
-      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
-      <AdditionalLibraryDirectories>C:\Users\Huandari\Source\Repos\googletest\googletest\msvc\gtest\Debug;C:\Users\Huandari\Documents\Visual Studio 2017\Projects\GBEmulator\GBEmulator\Debug</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\Users\hlope\Source\Repos\googletest\googletest\msvc\gtest\Debug;..\GBEmulator\Debug</AdditionalLibraryDirectories>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies);gtestd.lib;CPU.obj;Opcodes.obj;Gameboy.obj</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>

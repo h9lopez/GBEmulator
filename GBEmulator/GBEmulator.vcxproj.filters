@@ -27,6 +27,18 @@
     <ClCompile Include="Opcodes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gb_rom.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gb_ram.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="gb_regs.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CPUCore.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gameboy.h">
@@ -39,6 +51,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ReverseOpcodeMap.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gb_ram.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gb_regs.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gb_rom.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gb_typeutils.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CPUCore.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

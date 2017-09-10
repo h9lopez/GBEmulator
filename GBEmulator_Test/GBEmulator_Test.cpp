@@ -1,10 +1,10 @@
 // GBEmulator_Test.cpp : Defines the entry point for the console application.
 //
 
+#include "gtest/gtest.h"
 #include "stdafx.h"
 #include <iostream>
 
-#include "gtest/gtest.h"
 #include "CPU.h"
 #include "CPUTest.hpp"
 #include "OpcodesTest.hpp"
