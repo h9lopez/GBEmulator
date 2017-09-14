@@ -39,6 +39,9 @@
     <ClCompile Include="CPUCore.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="gb_cpucore_opcodes.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Gameboy.h">

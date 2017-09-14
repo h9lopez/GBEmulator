@@ -39,6 +39,7 @@ public:
     void HL(WordType val);    
     void SP(WordType val);    
     void PC(WordType val);    
+    WordType IncPC();
     
     // Flag getters
     Flag flagZero() const;

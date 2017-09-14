@@ -2,13 +2,16 @@
 #define INCLUDED_GB_CPU
 
 #include <memory>
+#include <map>
+#include <functional>
 #include "gb_ram.h"
 #include "gb_regs.h"
 
 class CPUCore
 {
-private:
+public:
 	typedef unsigned long CycleCount;
+	typedef std::map< ByteType, std::function<WordType(void)> >  OpcodeContainer;
 
 public:
     CPUCore(RAM& ram,
@@ -25,7 +28,10 @@ private:
     RAM* d_ram;
     RegBank* d_regs;
     CycleCount d_cycles;
+	static OpcodeContainer d_opcodes;
+    static OpcodeContainer d_cbOpcodes;
 };
+
 
 
 #endif

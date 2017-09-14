@@ -121,6 +121,7 @@
     <ClCompile Include="CPU.cpp" />
     <ClCompile Include="CPUCore.cpp" />
     <ClCompile Include="Gameboy.cpp" />
+    <ClCompile Include="gb_cpucore_opcodes.cpp" />
     <ClCompile Include="gb_ram.cpp" />
     <ClCompile Include="gb_regs.cpp" />
     <ClCompile Include="gb_rom.cpp" />

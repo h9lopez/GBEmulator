@@ -14,10 +14,9 @@ bool ROMLoader::fromFile(const std::string &filename, RAM &ram)
 	// Open file on disk
 	ifstream romFile(filename, ios::binary);
 
-	cout << "Opened file\n";
 	auto romSize = romFile.tellg();
 	romFile.seekg(0, ios::end);
-	cout << "Checking size\n";
+
 	// Check if the size is valid
 	romSize = romFile.tellg() - romSize;
 	if (romSize > MAX_ROMSIZE)
@@ -26,12 +25,11 @@ bool ROMLoader::fromFile(const std::string &filename, RAM &ram)
 		romFile.close();
 		return false;
 	}
-	cout << "Seeking to beg\n";
+
 	// Else dump ROM contents into mem
 	romFile.clear();
 	romFile.seekg(0, ios::beg);
 
-	cout << "copying rom into temp mem\n";
 	// Read ROM from beginning to romSize, ignoring any EOF
 	std::vector<char> tempMem;
 	tempMem.reserve(static_cast<size_t>(romSize));
