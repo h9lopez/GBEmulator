@@ -11,7 +11,7 @@ class CPUCore
 {
 public:
 	typedef unsigned long CycleCount;
-	typedef std::map< ByteType, std::function<WordType(void)> >  OpcodeContainer;
+
 
 public:
     CPUCore(RAM& ram,
@@ -25,11 +25,21 @@ public:
     void cycle();
     
 private:
+	typedef CycleCount OpcodeResult;
+	// The pair is returned from an opcode lambda
+	// of the form CYCLE
+	//		CYCLE	-> How many cycles did the instr take
+	typedef std::map< ByteType, std::function<OpcodeResult(void)> >  OpcodeContainer;
+
     RAM* d_ram;
     RegBank* d_regs;
     CycleCount d_cycles;
-	static OpcodeContainer d_opcodes;
-    static OpcodeContainer d_cbOpcodes;
+	OpcodeContainer d_opcodes;
+    OpcodeContainer d_cbOpcodes;
+
+	void initOpcodes();
+	ByteType readNextByte() const;
+	WordType readNextTwoBytes() const;
 };
 
 

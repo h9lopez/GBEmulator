@@ -129,6 +129,11 @@ WordType RegBank::IncPC()
 	return (d_regPC.word++);
 }
 
+void RegBank::IncPCBy(WordType val)
+{
+	d_regPC.word += val;
+}
+
 Flag RegBank::flagZero() const
 {
 	return d_fzero;

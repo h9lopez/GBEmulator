@@ -40,6 +40,7 @@ public:
     void SP(WordType val);    
     void PC(WordType val);    
     WordType IncPC();
+	void IncPCBy(WordType val);
     
     // Flag getters
     Flag flagZero() const;

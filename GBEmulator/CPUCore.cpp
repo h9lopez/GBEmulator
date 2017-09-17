@@ -16,6 +16,19 @@ CPUCore::CycleCount CPUCore::cycleCount() const
 	return CycleCount(d_cycles);
 }
 
+ByteType CPUCore::readNextByte() const
+{
+	return d_ram->readByte(d_regs->IncPC());
+}
+
+WordType CPUCore::readNextTwoBytes() const
+{
+	WordType res = d_ram->readWord(d_regs->PC());
+	d_regs->IncPCBy(2);
+	return res;
+}
+
+
 void CPUCore::cycle()
 {
 	ByteType opcode = d_ram->readByte(d_regs->IncPC());
