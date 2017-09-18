@@ -1,10 +1,13 @@
 #include "CPUCore.h"
 #include "gb_typeutils.h"
+#include "ReverseOpcodeMap.h"
 #include <iostream>
 
 CPUCore::CPUCore(RAM& ram, RegBank& regs)
 	: d_ram(&ram), d_regs(&regs), d_cycles(0)
-{}
+{
+	initOpcodes();
+}
 
 const RAM * CPUCore::ram() const
 {
@@ -45,10 +48,15 @@ void CPUCore::cycle()
 	{
 		// Two byte prefix
 		ByteType secondOpcode = d_ram->readByte(d_regs->IncPC());
+
+		std::cout << "OBSERVING CB: " << GENERATED_MAIN_INSTRUCTION_NAMES[secondOpcode] << '\n';
+
 		pcIncrement = d_cbOpcodes[opcode]();
 	}
 	else 
 	{
+		std::cout << "OBSERVING: " << std::hex << (int)opcode << " - " << GENERATED_MAIN_INSTRUCTION_NAMES[opcode] << '\n';
+
 		// One byte instruction
 		pcIncrement = d_opcodes[opcode]();
 	}

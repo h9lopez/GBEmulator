@@ -12,7 +12,7 @@ ByteType RAM::readByte(Address addr) const
 
 WordType RAM::readWord(Address addr) const
 {
-	return WordType(((WordType*)(d_mem[addr]))[0]);
+	return ((WordType*)(&d_mem[addr]))[0];
 }
 
 void RAM::writeByte(Address addr, ByteType val)
@@ -33,4 +33,14 @@ RAM::IT RAM::begin()
 RAM::IT RAM::end()
 {
 	return std::end(d_mem);
+}
+
+RAM::CIT RAM::cbegin() const
+{
+	return std::cbegin(d_mem);
+}
+
+RAM::CIT RAM::cend() const
+{
+	return std::cend(d_mem);
 }

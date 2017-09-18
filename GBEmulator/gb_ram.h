@@ -11,6 +11,7 @@ private:
 	static const int MEMSIZE = 0xFFF;
 	typedef std::array<uint8_t, MEMSIZE> Container;
 	typedef Container::iterator IT;
+	typedef Container::const_iterator CIT;
 
 public:
     RAM();
@@ -26,7 +27,9 @@ public:
 
 	// Getters 
 	IT begin();
+	CIT cbegin() const;
 	IT end();
+	CIT cend() const;
 
 private:
     Container d_mem;
