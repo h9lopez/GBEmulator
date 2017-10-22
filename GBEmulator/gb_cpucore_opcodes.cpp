@@ -59,6 +59,9 @@ void CPUCore::initOpcodes()
 {
 	// Initialize regular opcodes
 
+	// NO OP
+	d_opcodes[0x00] = [this]() { return 4; };
+
 	// JR NZ, r8
 	d_opcodes[0x20] = [this]() 
 	{
