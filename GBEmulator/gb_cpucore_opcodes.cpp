@@ -1,6 +1,32 @@
+#include <bitset>
 #include "CPUCore.h"
 
+// This namespace will contain generic helper functions that don't modify any
+// register/cpu state
+namespace helpers {
+	ByteType circularRotateLeft(ByteType in)
+	{
+		std::bitset<BYTETYPE_SIZE> bytes(in);
+		bool highbit = bytes[bytes.size() - 1];
+		bytes <<= 1;
+		bytes[0] = highbit;
+		
+		return (ByteType)bytes.to_ulong();
+	}
 
+	ByteType circularRotateRight(ByteType in)
+	{
+		std::bitset<BYTETYPE_SIZE> bytes(in);
+		bool lowbit = bytes[0];
+		bytes >>= 1;
+		bytes[bytes.size()-1] = lowbit;
+
+		return (ByteType)bytes.to_ulong();
+	}
+}
+
+// This namespace will hold common register operations that can be used throughout
+// various operations (i.e. abstracted operations like ADD x)
 namespace {
 	void incrementRegister(RegBank &regs,
 		std::function<void(ByteType)> regSet,
@@ -51,6 +77,7 @@ namespace {
 		regs.flagSubtract(false);
 		regs.flagHalfCarry(true);
 	}
+
 }
 
 
@@ -61,6 +88,71 @@ void CPUCore::initOpcodes()
 
 	// NO OP
 	d_opcodes[0x00] = [this]() { return 4; };
+
+	// RLCA
+	d_opcodes[0x07] = [this]() {
+		// left bit goes to carry flag and replaces 0 bit
+		ByteType target = d_regs->A();
+		ByteType highbit = target & 0x80;
+		
+		d_regs->flagCarry(highbit);
+		d_regs->flagZero(false);
+		d_regs->flagSubtract(false);
+		d_regs->flagHalfCarry(false);
+		d_regs->A(helpers::circularRotateLeft(target));
+		return 4;
+	};
+
+	// RLA
+	d_opcodes[0x17] = [this]() {
+		// current value in carry flag goes to bit 0 of A
+		// then bit 7 of A goes to carry flag
+		
+		std::bitset<BYTETYPE_SIZE> val(d_regs->A());
+		bool highbit = val[val.size() - 1];
+
+		val <<= 1;
+		val[0] = d_regs->flagCarry();
+		d_regs->flagCarry( highbit );
+		d_regs->A( (ByteType)val.to_ulong() );
+
+		d_regs->flagZero(false);
+		d_regs->flagSubtract(false);
+		d_regs->flagHalfCarry(false);
+		return 4;
+	};
+
+	// RRCA
+	d_opcodes[0x0F] = [this]() {
+		ByteType target = d_regs->A();
+		ByteType lowbit = target & 0x01;
+
+		d_regs->flagCarry(lowbit);
+		d_regs->flagZero(false);
+		d_regs->flagSubtract(false);
+		d_regs->flagHalfCarry(false);
+
+		d_regs->A(helpers::circularRotateRight(target));
+		return 4;
+	};
+
+	// RRA
+	d_opcodes[0x1F] = [this]() {
+		// high bit of A becomes carry flag, then carry flag becomes low bit,
+		// rest of the byte is shifted
+
+		std::bitset<BYTETYPE_SIZE> val(d_regs->A());
+		bool lowbit = val[0];
+
+		val >>= 1;
+		val[val.size() - 1] = d_regs->flagCarry();
+		d_regs->flagCarry(lowbit);
+		d_regs->A( (ByteType)val.to_ulong() );
+		d_regs->flagZero(false);
+		d_regs->flagHalfCarry(false);
+		d_regs->flagSubtract(false);
+		return 4;
+	};
 
 	// JR NZ, r8
 	d_opcodes[0x20] = [this]() 

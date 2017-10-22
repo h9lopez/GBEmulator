@@ -7,6 +7,8 @@ typedef uint16_t WordType;
 typedef uint8_t ByteType;
 typedef bool Flag;
 
+static const int BYTETYPE_SIZE = 8;
+
 typedef uint16_t Address;
 
 
