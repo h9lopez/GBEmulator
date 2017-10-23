@@ -78,6 +78,24 @@ namespace {
 		regs.flagHalfCarry(true);
 	}
 
+	void loadIntoHL(RegBank &regs,
+					std::function<WordType(void)> valGet)
+	{
+		WordType val = valGet();
+		bool isHalfCarry = ((regs.HL() & 0xf) + (val & 0xf)) & 0x10;
+
+		unsigned int sum = static_cast<unsigned int>(regs.HL()) +
+						   static_cast<unsigned int>(val);
+		bool isCarry = sum & 0x100;
+
+		regs.HL((ByteType)sum);
+		// Set flags
+		regs.flagSubtract(false);
+		regs.flagHalfCarry(isHalfCarry);
+		regs.flagCarry(isCarry);
+		// zero flag is ignored	
+	}
+
 }
 
 
@@ -152,6 +170,21 @@ void CPUCore::initOpcodes()
 		d_regs->flagHalfCarry(false);
 		d_regs->flagSubtract(false);
 		return 4;
+	};
+
+	// LD (a16), SP
+	d_opcodes[0x08] = [this]()
+	{
+		// No flags affected
+		d_ram->writeWord( readNextTwoBytes(), d_regs->SP() );
+		return 20;
+	};
+
+	// ADD HL, BC
+	d_opcodes[0x9] = [this]()
+	{
+		loadIntoHL(*d_regs, [this]() { return d_regs->BC(); });
+		return 8;
 	};
 
 	// JR NZ, r8
