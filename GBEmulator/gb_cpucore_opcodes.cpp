@@ -96,6 +96,14 @@ namespace {
 		// zero flag is ignored	
 	}
 
+
+	void loadByteIntoRegister(std::function<void(ByteType)> regSet,
+							std::function<ByteType(void)> valGet)
+	{
+		// NOTE: This function may seem useless but may come in handy later
+		//		 when we start doing profiling or debugging.
+		regSet( valGet() );
+	}
 }
 
 
@@ -181,9 +189,81 @@ void CPUCore::initOpcodes()
 	};
 
 	// ADD HL, BC
-	d_opcodes[0x9] = [this]()
+	d_opcodes[0x09] = [this]()
 	{
 		loadIntoHL(*d_regs, [this]() { return d_regs->BC(); });
+		return 8;
+	};
+
+	// ADD HL, DE
+	d_opcodes[0x19] = [this]()
+	{
+		loadIntoHL(*d_regs, [this]() { return d_regs->DE(); });
+		return 8;
+	};
+
+	// ADD HL, HL
+	d_opcodes[0x29] = [this]()
+	{
+		loadIntoHL(*d_regs, [this]() { return d_regs->HL(); });
+		return 8;
+	};
+
+	// ADD HL, SP
+	d_opcodes[0x39] = [this]()
+	{
+		loadIntoHL(*d_regs, [this]() { return d_regs->SP(); });
+		return 8;
+	};
+
+	// LD A, (BC)
+	d_opcodes[0x0A] = [this]() 
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_ram->readByte( d_regs->BC() ); }
+		);
+
+		return 8;
+	};
+
+	// LD A, (DE)
+	d_opcodes[0x1A] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_ram->readByte( d_regs->DE() ); }
+		);
+		return 8;
+	};
+
+	// LD A, (HL+) aka LDI A, (HL)
+	d_opcodes[0x2A] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_ram->readByte( d_regs->HL() ); }
+		);
+
+		// We don't use the regular register increment helper because this 
+		// operation doesn't set any flags related to the increment
+		d_regs->HL( d_regs->HL() + 1 );
+
+		return 8;
+	};
+
+	// LD A, (HL-) aka LDD A, (HL)
+	d_opcodes[0x3A] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+
+		// We don't use the regular register increment helper because this 
+		// operation doesn't set any flags related to the increment
+		d_regs->HL(d_regs->HL() - 1);
+
 		return 8;
 	};
 
