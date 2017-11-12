@@ -260,8 +260,8 @@ void CPUCore::initOpcodes()
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
 
-		// We don't use the regular register increment helper because this 
-		// operation doesn't set any flags related to the increment
+		// We don't use the regular register decrement helper because this 
+		// operation doesn't set any flags related to the decrement
 		d_regs->HL(d_regs->HL() - 1);
 
 		return 8;

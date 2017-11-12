@@ -49,3 +49,6 @@ bool ROMLoader::fromFile(const std::string &filename, RAM &ram)
 	romFile.close();
 	return true;
 }
+
+
+

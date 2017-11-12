@@ -43,7 +43,7 @@ void CPUCore::cycle()
 	}
 
 	// Check whether or not its a single byte instr or double
-	WordType pcIncrement = 0;
+	CycleCount pcIncrement = 0;
 	if (opcode == 0xCB)
 	{
 		// Two byte prefix

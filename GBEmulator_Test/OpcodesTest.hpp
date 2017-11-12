@@ -1,14 +1,19 @@
 #include "gtest/gtest.h"
-#include "Gameboy.h"
-#include "CPU.h"
+#include "CPUCore.h"
+#include "gb_rom.h"
 #pragma once
 
-class OpcodesTest : public ::testing::Test
+class CPUOpcodeTest : public ::testing::Test
 {
 protected:
+
+	CPUOpcodeTest() : regs(), ram(), cpu(ram, regs)
+	{
+
+	}
+
 	virtual void SetUp()
 	{
-		gbcpu.setMemoryLocation(this->mem, GB_MEMSIZE);
 	}
 
 	virtual void TearDown()
@@ -16,6 +21,8 @@ protected:
 
 	}
 
-	CPU gbcpu;
-	uint8_t mem[GB_MEMSIZE]{ 0 };
+	CPUCore cpu;
+	RegBank regs;
+	RAM ram;
+
 };

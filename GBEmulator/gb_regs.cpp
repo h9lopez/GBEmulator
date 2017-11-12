@@ -10,6 +10,23 @@ RegBank::RegBank()
 	d_regPC.word = 0;
 }
 
+
+void RegBank::copyCurrentState(RegBank& bank)
+{
+	// hard copying pretty much all of our state 
+	bank.d_fc = 	this->d_fc;
+	bank.d_fhc = 	this->d_fhc;
+	bank.d_fsub = 	this->d_fsub;
+	bank.d_fzero =	this->d_fzero;
+	bank.d_regA = 	this->d_regA;
+	bank.d_regBC = 	this->d_regBC;
+	bank.d_regDE = 	this->d_regDE;
+	bank.d_regHL = 	this->d_regHL;
+	bank.d_regPC = 	this->d_regPC;
+	bank.d_regSP = 	this->d_regSP;
+	return;
+}
+
 ByteType RegBank::A() const
 {
 	return ByteType(d_regA);

@@ -8,6 +8,9 @@ class RegBank
 public:
     RegBank();
 
+    // Misc helper functions
+    void copyCurrentState(RegBank& reg);
+
     // Getters for each of the individual byte regs
     ByteType A() const;
     ByteType B() const;
