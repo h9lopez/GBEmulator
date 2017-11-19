@@ -35,6 +35,7 @@ private:
     CycleCount d_cycles;
 	OpcodeContainer d_opcodes;
     OpcodeContainer d_cbOpcodes;
+	ByteType d_opcodeCycles;
 
 	void initOpcodes();
 	ByteType readNextByte() const;
