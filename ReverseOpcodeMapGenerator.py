@@ -1,32 +1,17 @@
-
 import urllib2
 from bs4 import BeautifulSoup
 
 # Relative to current directory
 TARGET_FILE = "GBEmulator/ReverseOpcodeMap.h"
 
-""" 
-@param opcode_list is a list of dictionary objects that contain info about individual opcodes
-@param array_name the C++ variable name to give the resulting array
-"""
-def format_as_code(opcode_list, array_name):
-    # NOTE: I have no idea what this next line was supposed to be for
-    #elements_str = "\n\t".join( str(opcode_list)[1:-1].split(',') )
-    res = ''
-    for opcode in opcode_list:
-        res += ('\t"%s",\n' % (str(opcode)))
-    code = "std::string %s[%s] = {\n%s\n};" % (str(array_name), str(len(opcode_list)), res)
-    return code
-
-"""Function will grab the incoming list of dictionary objects and produce an 
- array of lists of names of the opcodes (i.e. 'JR x, y', 'NOP', etc)
- @param opcode_list is the list of dictionary objects produced by enumerate_table
-"""
-def spit_opcode_names(opobj_list, array_name):
-    return format_as_code( [x['name'] for x in opobj_list], array_name )
-
 
 def generate_from_list(opobj_list, name):
+    """Generates valid C++ code in the form of an array of structs from the dictionary passed in
+
+    Arguments:
+    opobj_list  -- The list of Python dictionary objects that contain valid data for the struct
+    name        -- The name of the resulting C++ array to be generated
+    """
     res = ''
     for op in opobj_list:
         res += generate_cpp_struct(op) + ',\n\t\t'
@@ -34,6 +19,15 @@ def generate_from_list(opobj_list, name):
     return code
 
 def parse_flag(flag):
+    """Parses the direct string value from the HTML table for a single flag.
+    Most commonly look like '-', '0', '1', or 'H', 'S', 'Z', etc
+    This will spit out the corresponding C++ enum value in generation.
+
+    Returns a string.
+
+    Arguments:
+    flag        -- The singular string flag value directly from parsing
+    """
     if flag == '-':
         return 'FLAG_UNMODIFIED'
 
@@ -45,7 +39,20 @@ def parse_flag(flag):
 
     return 'FLAG_MODIFIED'
 
+
 def generate_cpp_struct(opobj):
+    """Generates a single C++ struct based on the single dictionary object of values passed in.
+    Expected format of the dictionary is: 
+        "name": val,
+        "length": val,
+        "cycles": val,
+        "flags": { "zero": val, "subtract": val, "half_carry": val, "carry": val }
+    The returned value is a C++ line of code that instantiates the struct.
+        i.e. { "hello", 1, 2, "world" }
+    
+    Arguments:
+    opobj       -- The single Python dictionary that contains values for generating struct
+    """
     # Check to see if there is a long/short cycle 
     cycle_split = opobj["cycles"].split('/')
     short_cycle = cycle_split[0]
@@ -65,34 +72,18 @@ def generate_cpp_struct(opobj):
 
     return "{ " + ", ".join(builder) + " }"
 
-"""Function will produce a string of C++ code that is an array of all of the
- cycle counts of the opcodes in the list
- @param opobj_list - The list of dictionary objects returned by enumerate_table
- @param array_name_short - The name of the C++ array to be generated for short (untaken) paths
- @param array_name_long - Name of C++ array to be generated for long (taken) paths
-"""
-def spit_opcode_cycles(opobj_list, array_name_short, array_name_long):
-    # This one's a little trickier. Opcode cycles can be in format '8/12'
-    # Meaning it could be 8 cycles OR 12. So we'll provide two lists,
-    # one for short execs, the other for long execs.
-
-    short_execs = []
-    long_execs = []
-    # Seperate into two lists
-    short_execs = [x['cycles'].split('/')[0] if x['cycles'].find('/') > 0 else x['cycles'] \
-                                                                       for x in opobj_list]
-    long_execs = [x['cycles'].split('/')[1] if x['cycles'].find('/') > 0 else x['cycles'] \
-                                                                       for x in opobj_list]
-
-    # Transform to individual arrays
-    short_code = format_as_code(short_execs, array_name_short)
-    long_code = format_as_code(long_execs, array_name_long)
-
-    # Concat and return
-    return short_code + "\n\n" + long_code
 
 # Parses a table in order
-def enumerate_table(table, ignore_first_row = True, ignore_first_column = True, begin_counter = 0):
+def enumerate_table(table, ignore_first_row = True, ignore_first_column = True):
+    """Grabs the raw HTML table element and combs through it extracting each cell into a Python dictionary object.
+    Returns a list of all parsed dictionary objects found in the table.
+    Resulting length of the list should be table len x width (or 256 in our specific case)
+
+    Arguments:
+    table               -- Raw HTML table element from BeautifulSoup
+    ignore_first_row    -- Ignores the header objects if desired (i.e. header is first row)
+    ignore_first_column -- Ignores the header obejcts if desired (i.e. first column has header info)
+    """
     if table == None:
         print "Table not valid"
         return
@@ -153,10 +144,12 @@ def enumerate_table(table, ignore_first_row = True, ignore_first_column = True, 
 ###############################################################################################
 # Beginning of fetching and parsing ###########################################################
 ###############################################################################################
+
+# Grab the raw HTML from the source
 raw_html = urllib2.urlopen("http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html").read()
 tableDoc = BeautifulSoup(raw_html, 'html.parser')
 
-
+# Find the two target tables - one filled with regular instructions and the other with CB instrs
 tables = tableDoc.findAll("table")
 if len(tables) == 0:
     print "Error in getting tables"
@@ -181,6 +174,8 @@ print "Grabbed " + str(len(parsed_cb_table)) + " CB table objects"
 gen_code = generate_from_list(parsed_main_table, 'GENERATED_MAIN_INSTRUCTION_NAMES')
 gen_cb_code = generate_from_list(parsed_cb_table, "GENERATED_CB_INSTRUCTION_NAMES")
 
+
+# Prepare to write the generated code to the file
 file_preamble = "#pragma once\n#include <string>\n\n/*\nReverse map for mapping opcodes -> readable instruction text\n*/\n\n// Useful to see the state at which the flags should be at after the opcode is executed.\nenum FlagMod {\n    FLAG_UNMODIFIED,\n    FLAG_MODIFIED, // this value will be determined by the operation itself.\n    FLAG_ZERO,\n    FLAG_ONE\n};\n\nstruct OpcodeMetadata \n{\n    std::string name;\n    unsigned int byteLength;\n    // The number of cycles taken if a short exec path (untaken branch i.e.)\n    unsigned int cyclesTaken; \n    // Number of cycles for a long exec path\n    unsigned int cyclesUntaken;\n    enum FlagMod flagZero;\n    enum FlagMod flagSubtract;\n    enum FlagMod flagHalfCarry;\n    enum FlagMod flagCarry;\n};\n\n\n"
 
 print "Writing generated code to file %s" % (TARGET_FILE)
@@ -191,3 +186,4 @@ f.write("\n\n")
 f.write(gen_cb_code)
 f.close()
 print "File closed. Generation complete."
+print "Goodbye"
