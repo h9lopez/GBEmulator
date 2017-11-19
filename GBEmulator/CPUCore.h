@@ -6,6 +6,7 @@
 #include <functional>
 #include "gb_ram.h"
 #include "gb_regs.h"
+#include "gb_typeutils.h"
 
 class CPUCore
 {
@@ -28,7 +29,7 @@ private:
 	// The pair is returned from an opcode lambda
 	// of the form CYCLE
 	//		CYCLE	-> How many cycles did the instr take
-	typedef std::map< ByteType, std::function<CycleCount(void)> >  OpcodeContainer;
+	typedef std::map< ByteType, std::function<OpResult(void)> >  OpcodeContainer;
 
     RAM* d_ram;
     RegBank* d_regs;
