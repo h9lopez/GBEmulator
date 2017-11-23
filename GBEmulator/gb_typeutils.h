@@ -17,4 +17,15 @@ typedef uint16_t Address;
 // and the second value the number of cycles taken by the opcode
 typedef std::tuple<WordType, ByteType> OpResult;
 
+// The normal amount to increment PC by after each instruction
+static const WordType PC_INC_NORMAL = 1;
+
+// Enum for a return type that describes whether 
+// an opcodes cycle count should be that of its TAKEN or UNTAKEN count
+// This changes, for example, in the case of JR/JP
+typedef enum {
+    CYCLE_TAKEN,
+    CYCLE_UNTAKEN
+} CYCLE_ACTION;
+
 #endif 

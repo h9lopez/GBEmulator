@@ -16,7 +16,7 @@ enum FlagMod {
 struct OpcodeMetadata 
 {
     std::string name;
-    unsigned int byteLength;
+    unsigned int length;
     // The number of cycles taken if a short exec path (untaken branch i.e.)
     unsigned int cyclesTaken; 
     // Number of cycles for a long exec path
@@ -28,7 +28,7 @@ struct OpcodeMetadata
 };
 
 
-OpcodeMetadata GENERATED_MAIN_INSTRUCTION_NAMES[256] = {
+static const OpcodeMetadata INSTR_META[256] = {
 		{ "NOP", 1, 4, 4, FLAG_UNMODIFIED, FLAG_UNMODIFIED, FLAG_UNMODIFIED, FLAG_UNMODIFIED },
 		{ "LD BC,d16", 3, 12, 12, FLAG_UNMODIFIED, FLAG_UNMODIFIED, FLAG_UNMODIFIED, FLAG_UNMODIFIED },
 		{ "LD (BC),A", 1, 8, 8, FLAG_UNMODIFIED, FLAG_UNMODIFIED, FLAG_UNMODIFIED, FLAG_UNMODIFIED },
@@ -288,7 +288,7 @@ OpcodeMetadata GENERATED_MAIN_INSTRUCTION_NAMES[256] = {
 		
 };
 
-OpcodeMetadata GENERATED_CB_INSTRUCTION_NAMES[256] = {
+static const OpcodeMetadata INSTR_CB_META[256] = {
 		{ "RLC B", 2, 8, 8, FLAG_MODIFIED, FLAG_ZERO, FLAG_ZERO, FLAG_MODIFIED },
 		{ "RLC C", 2, 8, 8, FLAG_MODIFIED, FLAG_ZERO, FLAG_ZERO, FLAG_MODIFIED },
 		{ "RLC D", 2, 8, 8, FLAG_MODIFIED, FLAG_ZERO, FLAG_ZERO, FLAG_MODIFIED },

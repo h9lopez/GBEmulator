@@ -15,7 +15,7 @@ def generate_from_list(opobj_list, name):
     res = ''
     for op in opobj_list:
         res += generate_cpp_struct(op) + ',\n\t\t'
-    code = "OpcodeMetadata %s[%s] = {\n\t\t%s\n};" % (str(name), str(len(opobj_list)), res)
+    code = "static const OpcodeMetadata %s[%s] = {\n\t\t%s\n};" % (str(name), str(len(opobj_list)), res)
     return code
 
 def parse_flag(flag):
@@ -171,12 +171,12 @@ print "Grabbed " + str(len(parsed_main_table)) + " main table objects"
 print "Grabbed " + str(len(parsed_cb_table)) + " CB table objects"
 
 # Use the parsed information to generate valid C++ code for writing
-gen_code = generate_from_list(parsed_main_table, 'GENERATED_MAIN_INSTRUCTION_NAMES')
-gen_cb_code = generate_from_list(parsed_cb_table, "GENERATED_CB_INSTRUCTION_NAMES")
+gen_code = generate_from_list(parsed_main_table, 'INSTR_META')
+gen_cb_code = generate_from_list(parsed_cb_table, "INSTR_CB_META")
 
 
 # Prepare to write the generated code to the file
-file_preamble = "#pragma once\n#include <string>\n\n/*\nReverse map for mapping opcodes -> readable instruction text\n*/\n\n// Useful to see the state at which the flags should be at after the opcode is executed.\nenum FlagMod {\n    FLAG_UNMODIFIED,\n    FLAG_MODIFIED, // this value will be determined by the operation itself.\n    FLAG_ZERO,\n    FLAG_ONE\n};\n\nstruct OpcodeMetadata \n{\n    std::string name;\n    unsigned int byteLength;\n    // The number of cycles taken if a short exec path (untaken branch i.e.)\n    unsigned int cyclesTaken; \n    // Number of cycles for a long exec path\n    unsigned int cyclesUntaken;\n    enum FlagMod flagZero;\n    enum FlagMod flagSubtract;\n    enum FlagMod flagHalfCarry;\n    enum FlagMod flagCarry;\n};\n\n\n"
+file_preamble = "#pragma once\n#include <string>\n\n/*\nReverse map for mapping opcodes -> readable instruction text\n*/\n\n// Useful to see the state at which the flags should be at after the opcode is executed.\nenum FlagMod {\n    FLAG_UNMODIFIED,\n    FLAG_MODIFIED, // this value will be determined by the operation itself.\n    FLAG_ZERO,\n    FLAG_ONE\n};\n\nstruct OpcodeMetadata \n{\n    std::string name;\n    unsigned int length;\n    // The number of cycles taken if a short exec path (untaken branch i.e.)\n    unsigned int cyclesTaken; \n    // Number of cycles for a long exec path\n    unsigned int cyclesUntaken;\n    enum FlagMod flagZero;\n    enum FlagMod flagSubtract;\n    enum FlagMod flagHalfCarry;\n    enum FlagMod flagCarry;\n};\n\n\n"
 
 print "Writing generated code to file %s" % (TARGET_FILE)
 f = open(TARGET_FILE, 'w')

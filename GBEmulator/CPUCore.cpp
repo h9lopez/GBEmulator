@@ -43,25 +43,27 @@ void CPUCore::cycle()
 	}
 
 	// Check whether or not its a single byte instr or double
-	CycleCount pcIncrement = 0;
+	WordType pcIncrement = 0;
+	CycleCount cyclesTaken = 0;
 	if (opcode == 0xCB)
 	{
 		// Two byte prefix
 		ByteType secondOpcode = d_ram->readByte(d_regs->IncPC());
 
-		std::cout << "OBSERVING CB: " << GENERATED_CB_INSTRUCTION_NAMES[secondOpcode].name << '\n';
+		std::cout << "OBSERVING CB: " << INSTR_CB_META[secondOpcode].name << '\n';
 
 		// Looking at two separate things. PC increment and cycles taken
 		// PC increment is mostly static (usually length of opcode) except for JR/JP
 		// Cycles can vary based on whether a branch is taken or untaken (again, for JR/JP)
-		pcIncrement = d_cbOpcodes[opcode]();
+		
+		std::tie(pcIncrement, cyclesTaken) = d_cbOpcodes[opcode]();
 	}
 	else 
 	{
-		std::cout << "OBSERVING: " << std::hex << (int)opcode << " - " << GENERATED_MAIN_INSTRUCTION_NAMES[opcode].name << '\n';
+		std::cout << "OBSERVING: " << std::hex << (int)opcode << " - " << INSTR_META[opcode].name << '\n';
 
 		// One byte instruction
-		pcIncrement = d_opcodes[opcode]();
+		std::tie(pcIncrement, cyclesTaken) = d_opcodes[opcode]();
 	}
 
 	// Increment PC at the end
