@@ -24,14 +24,7 @@ bool flags_are_same_state(const RegBank& before, const RegBank& after)
 
 TEST_F(CPUOpcodeTest, opcode_test_0x00)
 {
-	// Grab empty snapshot of regs before test starts
-	RegBank snapshot;
-	regs.copyCurrentState(snapshot);
-
-	// Opcode list to execute
-	std::array<ByteType, 1> oplist = { 0x00 };
-	// Load opcodes into ram
-	ASSERT_TRUE(ROMLoader::fromRawBytes(oplist.begin(), oplist.end(), ram));
+	SetUp({0x00});
 	
 	// Perform exactly 1 cycle
 	cpu.cycle();
@@ -46,14 +39,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x00)
 
 TEST_F(CPUOpcodeTest, opcode_test_0x01)
 {
-	// Grab empty snapshot of regs before test starts
-	RegBank snapshot;
-	regs.copyCurrentState(snapshot);
-
-	// Opcode list to execute, opcode then byte to load
-	std::array<ByteType, 3> oplist = { 0x01, 0xFE, 0xCA };
-	// Load opcodes into ram
-	ASSERT_TRUE(ROMLoader::fromRawBytes(oplist.begin(), oplist.end(), ram));
+	SetUp({0x01, 0xFE, 0xCA});
 
 	// Perform exactly 1 cycle
 	cpu.cycle();
@@ -65,6 +51,10 @@ TEST_F(CPUOpcodeTest, opcode_test_0x01)
 	ASSERT_TRUE(flags_are_same_state(snapshot, after));
 	ASSERT_EQ(after.BC(), 0xCAFE);
 	ASSERT_EQ(cpu.cycleCount(), 12);
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x02)
+{
 }
 
 
