@@ -1,0 +1,25 @@
+{
+
+"single_opcode": {
+    "tests":
+    [
+        {
+            "opcode": "0x0",
+            "sequence": ["0x00"],
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4
+        },
+        {
+            "opcode": "0x01",
+            "sequence": "01FECA",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 12,
+            "regs": {
+                "BC": "0xCAFE"
+            }
+        }
+    ]
+}
+
+
+}
