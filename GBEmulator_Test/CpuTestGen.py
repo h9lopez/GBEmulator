@@ -84,13 +84,24 @@ class SingleOpcodeTest(object):
             )
         )
 
-        return "\n".join(res)
+        return "\t" + ("\n\t".join(res))
 
     def _buildRegAsserts(self):
         """Function returns a series of C++ code of ASSERT_*()'s that check the values
         after the test is complete.
         """
-        pass
+        res = []
+
+        form = 'ASSERT_EQ(after.{reg}(), {val});'
+
+        for regKey in self.regsResult:
+            repMap = {'reg': regKey, 
+                      'val': self.regsResult[regKey]
+                     }
+            res.append( form.format(**repMap) )
+        
+        return "\t" + ("\n\t".join(res))
+
 
     def generateCpp(self):
         """Function assumes the object has been filled and ready to be generated.
