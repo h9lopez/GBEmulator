@@ -5,7 +5,7 @@
     [
         {
             "opcode": "0x0",
-            "sequence": ["0x00"],
+            "sequence": ["00"],
             "flags": ["U", "U", "U", "U"],
             "cycles": 4
         },

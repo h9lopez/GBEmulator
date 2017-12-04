@@ -52,7 +52,7 @@ class SingleOpcodeTest(object):
         # Zero flag
         res.append( 
             'ASSERT_EQ(after.flagZero(), {});'.format(
-                'before.flagZero()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                'snapshot.flagZero()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
                 '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
             )
          )
@@ -61,7 +61,7 @@ class SingleOpcodeTest(object):
         # Subtract flag
         res.append(
             'ASSERT_EQ(after.flagSubtract(), {});'.format(
-                'before.flagSubtract()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                'snapshot.flagSubtract()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
                 '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
             )
         )
@@ -70,7 +70,7 @@ class SingleOpcodeTest(object):
         # Half carry
         res.append(
             'ASSERT_EQ(after.flagHalfCarry(), {});'.format(
-                'before.flagHalfCarry()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                'snapshot.flagHalfCarry()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
                 '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
             )
         )
@@ -79,7 +79,7 @@ class SingleOpcodeTest(object):
         # Carry flag
         res.append(
             'ASSERT_EQ(after.flagCarry(), {});'.format(
-                'before.flagCarry()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                'snapshot.flagCarry()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
                 '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
             )
         )
@@ -151,9 +151,11 @@ class SingleOpcodeTest(object):
             # Sequence of bytes, can EITHER be an array of hex values
             # or a long string of hex
             if type(jobj["sequence"]) == type([]):
-                nObj.sequence = [ hex(int(x, 16)) for x in jobj["sequence"] ]
+                nObj.sequence = [ x.decode("hex") for x in jobj["sequence"] ]
+                #print "A" + nObj.sequence
             elif type(jobj["sequence"]) == type(u""):
                 nObj.sequence = list(jobj["sequence"].decode("hex"))
+                #print "B" + nObj.sequence
 
             # Flag results after test. Required as a whole but individual
             # flags can be set as 'unmodified' from before-test values
@@ -190,22 +192,38 @@ class SingleOpcodeTest(object):
 
 
 def main():
-    fil = open("gbtestgen.json")
+    filData = None
 
-    filData = json.load(fil)
+    with open("gbtestgen.json") as fil:
+        filData = json.load(fil)
 
-    testObj = SingleOpcodeTest.fromJsonObj(filData["single_opcode"]["tests"][1])
 
-    if testObj != None:
-        print testObj.opcode
-        print testObj.sequence
-        print testObj.flagResult
-        print testObj.cycles
-        print testObj.regsResult
+    resultingCode = ''
 
-        print testObj.generateCpp()
+    # Generate single opcodes tests
+    for test in filData["single_opcode"]["tests"]:
+        testObj = SingleOpcodeTest.fromJsonObj(test)
+        if testObj == None:
+            print "ERROR: Could not parse test-> " + str(test)
+            break
+        
+        resultingCode += testObj.generateCpp() + "\n\n"
+        
 
-    fil.close()
+    # Output generated code to file.
+    with open("GBEmulator_Test.gen.cpp", "w") as fil:
+        fil.writelines([
+            "#include \"gtest/gtest.h\"\n",
+            "#include \"stdafx.h\"\n",
+            '#include <iostream>\n',
+            '#include <array>\n',
+            '#include "CPUCore.h"\n',
+            '#include "OpcodesTest.hpp"\n\n\n',
+            resultingCode,
+            "int main(int argc, char *argv[])\n{\n\ttesting::InitGoogleTest(&argc, argv);\n\tRUN_ALL_TESTS();\n\tstd::getchar();\n    return 0;\n}"
+        ])
+
+
 
 if __name__ == "__main__":
     main()
