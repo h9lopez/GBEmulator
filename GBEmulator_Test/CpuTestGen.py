@@ -44,7 +44,47 @@ class SingleOpcodeTest(object):
         correspond to the flags that were specified in the object, checking
         their values after the test
         """
-        pass
+        res = []
+
+        # It's always a static set so no need to do dynamic looping
+
+        idx = 0
+        # Zero flag
+        res.append( 
+            'ASSERT_EQ(after.flagZero(), {});'.format(
+                'before.flagZero()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
+            )
+         )
+
+        idx += 1
+        # Subtract flag
+        res.append(
+            'ASSERT_EQ(after.flagSubtract(), {});'.format(
+                'before.flagSubtract()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
+            )
+        )
+
+        idx += 1
+        # Half carry
+        res.append(
+            'ASSERT_EQ(after.flagHalfCarry(), {});'.format(
+                'before.flagHalfCarry()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
+            )
+        )
+
+        idx += 1
+        # Carry flag
+        res.append(
+            'ASSERT_EQ(after.flagCarry(), {});'.format(
+                'before.flagCarry()' if self.flagResult[idx] == FlagStatus.UNMODIFIED else
+                '0' if self.flagResult[idx] == FlagStatus.ZERO else '1'
+            )
+        )
+
+        return "\n".join(res)
 
     def _buildRegAsserts(self):
         """Function returns a series of C++ code of ASSERT_*()'s that check the values
@@ -67,7 +107,7 @@ class SingleOpcodeTest(object):
         # First, the standard oens.
         replaceMap = {
             'test_name': self.opcode,
-            'romData': ", ".join(map(lambda x: '0x%02x' % ord(x), self.sequence)),
+            'romData': ", ".join(['0x%02x' % ord(x) for x in self.sequence]),
             'cycleAmount': self.cycles,
             'flagAsserts': self._buildFlagAsserts(),
             'regAsserts': self._buildRegAsserts()
