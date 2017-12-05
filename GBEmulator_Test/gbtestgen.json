@@ -17,6 +17,33 @@
             "regs": {
                 "BC": "0xCAFE"
             }
+        },
+        {
+            "opcode": "0x11",
+            "sequence": "11BECA",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 12,
+            "regs": {
+                "DE": "0xCABE"
+            }
+        },
+        {
+            "opcode": "0x21",
+            "sequence": "21BEBA",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 12,
+            "regs": {
+                "HL": "0xBABE"
+            }
+        },
+        {
+            "opcode": "0x31",
+            "sequence": "31BEBA",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 12,
+            "regs": {
+                "SP": "0xBABE"
+            }
         }
     ]
 }
