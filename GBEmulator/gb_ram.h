@@ -8,13 +8,16 @@
 class RAM
 {
 private:
-	static const int MEMSIZE = 0xFFF;
+	static const int MEMSIZE = 0xFFFF;
 	typedef std::array<uint8_t, MEMSIZE> Container;
 	typedef Container::iterator IT;
 	typedef Container::const_iterator CIT;
 
 public:
     RAM();
+
+	// helper function for debugging
+	void copyCurrentState(RAM& dest) const;
 
     ByteType readByte(Address addr) const;
     WordType readWord(Address addr) const;

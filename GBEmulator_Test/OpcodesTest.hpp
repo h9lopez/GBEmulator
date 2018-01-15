@@ -11,7 +11,7 @@ class CPUOpcodeTest : public ::testing::Test
 {
 protected:
 
-	CPUOpcodeTest() : regs(), ram(), cpu(ram, regs)
+	CPUOpcodeTest() : regs(), mem(), cpu(mem, regs)
 	{
 
 	}
@@ -20,9 +20,10 @@ protected:
 	{
 		// Take snapshot of the old register bank
 		this->regs.copyCurrentState(this->snapshot);
+		this->mem.copyCurrentState(this->memSnapshot);
 
 		// Load the byte vector into ram 
-		ASSERT_TRUE(ROMLoader::fromRawBytes(vec.begin(), vec.end(), this->ram));
+		ASSERT_TRUE(ROMLoader::fromRawBytes(vec.begin(), vec.end(), this->mem));
 	}
 
 	virtual void TearDown()
@@ -31,8 +32,9 @@ protected:
 	}
 
 	RegBank snapshot;
+	RAM memSnapshot;
 	CPUCore cpu;
 	RegBank regs;
-	RAM ram;
+	RAM mem;
 
 };

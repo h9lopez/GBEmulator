@@ -5,6 +5,13 @@
 RAM::RAM()
 {}
 
+void RAM::copyCurrentState(RAM & dest) const
+{
+	// hard copy all variables to new destination
+	// TODO: Has possibility of failure
+	dest.copyRangeFromBuffer(this->d_mem.begin(), this->d_mem.end(), dest.begin());
+}
+
 ByteType RAM::readByte(Address addr) const
 {
 	return ByteType(d_mem[addr]);

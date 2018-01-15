@@ -44,6 +44,25 @@
             "regs": {
                 "SP": "0xBABE"
             }
+        },
+        {
+            "opcode": "0x02",
+            "startingState": {
+                "regs": {
+                    "A": "0x21",
+                    "BC": "0xBEEF"
+                },
+                "mem": {
+                    "0xBEEF": "0x69"
+                }
+            },
+
+            "sequence": "02",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "mem": {
+                "0xBEEF": "0x21"
+            }
         }
     ]
 }
