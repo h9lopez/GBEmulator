@@ -191,6 +191,8 @@ def main():
 
 
     resultingCode = ''
+    # A bookkeeping list to keep track of which opcodes were processed so far
+    processed_opcodes = []
 
     # Generate single opcodes tests
     for test in filData["single_opcode"]["tests"]:
@@ -201,6 +203,8 @@ def main():
             break
         # If succeeds, the return type is of type SingleOpcodeTest
         testObj = validateRes
+
+        processed_opcodes.append( testObj.opcode )
         
         resultingCode += testObj.generateCpp() + "\n\n"
         
@@ -217,6 +221,9 @@ def main():
             resultingCode,
             "int main(int argc, char *argv[])\n{\n\ttesting::InitGoogleTest(&argc, argv);\n\tRUN_ALL_TESTS();\n\tstd::getchar();\n    return 0;\n}"
         ])
+
+    print "Processed opcodes: "
+    print str(processed_opcodes)
 
 
 

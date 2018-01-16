@@ -88,7 +88,7 @@ class JSONValidator(object):
         starting state umbrella. Right now includes registers and mem settings
         that are asserted before the actual test runs.
         """
-        startingStateDict = {}
+        startingStateDict = {"mem": {}, "regs": {}}
         
         # Look for memory state first
         if "mem" in start:
