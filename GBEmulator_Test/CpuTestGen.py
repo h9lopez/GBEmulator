@@ -4,6 +4,7 @@
 #       Have support for setting reg values BEFORE opcode begins running
 
 import json
+import random
 from JValidate import *
 
 class SingleOpcodeTest(object):
@@ -168,7 +169,7 @@ class SingleOpcodeTest(object):
         # Replace placeholders in file with those available to us.
         # First, the standard oens.
         replaceMap = {
-            'test_name': self.opcode,
+            'test_name': self.opcode + "_" + str(random.randint(1,100)),
             'romData': ", ".join(['0x%02x' % ord(x) for x in self.sequence]),
             'cycleAmount': self.cycles,
             'flagAsserts': self._buildFlagAsserts(),

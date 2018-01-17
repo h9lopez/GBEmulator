@@ -63,7 +63,7 @@ class JSONValidator(object):
             return False
         self.testObj.flagResult = res
 
-        if "res" in jobj:
+        if "regs" in jobj:
             res = self.__valRegs(jobj["regs"])
             if res == False:
                 return False
