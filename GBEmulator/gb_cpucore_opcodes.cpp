@@ -716,6 +716,33 @@ void CPUCore::initOpcodes()
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
+	// CPL
+	d_opcodes[0x2F] = [this]()
+	{
+		d_regs->A( ~d_regs->A() );
+		d_regs->flagSubtract(true);
+		d_regs->flagHalfCarry(true);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CCF
+	d_opcodes[0x3F] = [this]()
+	{
+		d_regs->flagCarry( !(d_regs->flagCarry()) );
+		d_regs->flagSubtract(false);
+		d_regs->flagHalfCarry(false);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SCF
+	d_opcodes[0x37] = [this]()
+	{
+		d_regs->flagCarry(true);
+		d_regs->flagSubtract(false);
+		d_regs->flagHalfCarry(false);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
 
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes

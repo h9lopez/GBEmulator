@@ -409,6 +409,38 @@
             "regs": {
                 "A": "0x10"
             }
+        },
+        {
+            "opcode": "0x2F",
+            "startingState": {
+                "regs": {
+                    "A": "0x45"
+                }
+            },
+            "sequence": "2F",
+            "flags": ["U", "1", "1", "U"],
+            "cycles": 4,
+            "regs": {
+                "A": "0xBA"
+            }
+        },
+        {
+            "opcode": "0x3F",
+            "startingState": {
+                "flags": ["0", "1", "1", "1"]
+            },
+            "sequence": "3F",
+            "flags": ["U", "0", "0", "0"],
+            "cycles": 4
+        },
+        {
+            "opcode": "0x37",
+            "startingState": {
+                "flags": ["0", "1", "1", "0"]
+            },
+            "sequence": "37",
+            "flags": ["U", "0", "0", "1"],
+            "cycles": 4
         }
     ]
 }
