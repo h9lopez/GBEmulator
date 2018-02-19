@@ -441,6 +441,110 @@
             "sequence": "37",
             "flags": ["U", "0", "0", "1"],
             "cycles": 4
+        },
+        {
+            "opcode": "0x40",
+            "startingState": {
+                "regs":{
+                    "B": "0x69"
+                }
+            },
+            "sequence": "40",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "B": "0x69"
+            }
+        },
+        {
+            "opcode": "0x41",
+            "startingState": {
+                "regs":{
+                    "B": "0x69",
+                    "C": "0x40"
+                }
+            },
+            "sequence": "41",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "B": "0x40"
+            }
+        },
+        {
+            "opcode": "0x42",
+            "startingState": {
+                "regs":{
+                    "B": "0x69",
+                    "D": "0x40"
+                }
+            },
+            "sequence": "42",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "B": "0x40"
+            }
+        },
+        {
+            "opcode": "0x43",
+            "startingState": {
+                "regs":{
+                    "B": "0x69",
+                    "E": "0x40"
+                }
+            },
+            "sequence": "43",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "B": "0x40"
+            }
+        },
+        {
+            "opcode": "0x44",
+            "startingState": {
+                "regs":{
+                    "B": "0x69",
+                    "H": "0x40"
+                }
+            },
+            "sequence": "44",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "B": "0x40"
+            }
+        },
+        {
+            "opcode": "0x45",
+            "startingState": {
+                "regs":{
+                    "B": "0x69",
+                    "L": "0x40"
+                }
+            },
+            "sequence": "45",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "B": "0x40"
+            }
+        },
+        {
+            "opcode": "0x47",
+            "startingState": {
+                "regs":{
+                    "B": "0x69",
+                    "A": "0x40"
+                }
+            },
+            "sequence": "47",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "B": "0x40"
+            }
         }
     ]
 }
