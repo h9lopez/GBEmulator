@@ -6,7 +6,7 @@
 #include "OpcodesTest.hpp"
 
 
-TEST_F(CPUOpcodeTest, opcode_test_0x0_19)
+TEST_F(CPUOpcodeTest, opcode_test_0x0_100)
 {
     SetUp({ 0x00 });
 
@@ -33,7 +33,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x0_19)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x1_1)
+TEST_F(CPUOpcodeTest, opcode_test_0x1_90)
 {
     SetUp({ 0x01, 0xfe, 0xca });
 
@@ -60,7 +60,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x1_1)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x11_33)
+TEST_F(CPUOpcodeTest, opcode_test_0x11_48)
 {
     SetUp({ 0x11, 0xbe, 0xca });
 
@@ -87,7 +87,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x11_33)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x21_49)
+TEST_F(CPUOpcodeTest, opcode_test_0x21_70)
 {
     SetUp({ 0x21, 0xbe, 0xba });
 
@@ -114,7 +114,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x21_49)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x31_87)
+TEST_F(CPUOpcodeTest, opcode_test_0x31_63)
 {
     SetUp({ 0x31, 0xbe, 0xba });
 
@@ -141,7 +141,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x31_87)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x2_67)
+TEST_F(CPUOpcodeTest, opcode_test_0x2_43)
 {
     SetUp({ 0x02 });
 
@@ -169,7 +169,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x2_67)
 	ASSERT_EQ(memAfter.readByte(0xBEEF), 0x21);
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x12_75)
+TEST_F(CPUOpcodeTest, opcode_test_0x12_42)
 {
     SetUp({ 0x12 });
 
@@ -197,7 +197,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x12_75)
 	ASSERT_EQ(memAfter.readByte(0xBEEF), 0x10);
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x22_93)
+TEST_F(CPUOpcodeTest, opcode_test_0x22_73)
 {
     SetUp({ 0x22 });
 
@@ -225,7 +225,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x22_93)
 	ASSERT_EQ(memAfter.readByte(0xBEEF), 0x77);
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x32_67)
+TEST_F(CPUOpcodeTest, opcode_test_0x32_47)
 {
     SetUp({ 0x32 });
 
@@ -253,7 +253,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x32_67)
 	ASSERT_EQ(memAfter.readByte(0xBEEF), 0x77);
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x3_23)
+TEST_F(CPUOpcodeTest, opcode_test_0x3_93)
 {
     SetUp({ 0x03 });
 
@@ -280,7 +280,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x3_23)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x13_51)
+TEST_F(CPUOpcodeTest, opcode_test_0x13_92)
 {
     SetUp({ 0x13 });
 
@@ -307,7 +307,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x13_51)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x23_96)
+TEST_F(CPUOpcodeTest, opcode_test_0x23_34)
 {
     SetUp({ 0x23 });
 
@@ -334,7 +334,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x23_96)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x33_91)
+TEST_F(CPUOpcodeTest, opcode_test_0x33_83)
 {
     SetUp({ 0x33 });
 
@@ -361,7 +361,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x33_91)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x4_84)
+TEST_F(CPUOpcodeTest, opcode_test_0x4_83)
 {
     SetUp({ 0x04 });
 
@@ -388,7 +388,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x4_84)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x4_69)
+TEST_F(CPUOpcodeTest, opcode_test_0x4_97)
 {
     SetUp({ 0x04 });
 
@@ -415,7 +415,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x4_69)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x14_35)
+TEST_F(CPUOpcodeTest, opcode_test_0x14_67)
 {
     SetUp({ 0x14 });
 
@@ -442,7 +442,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x14_35)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x14_17)
+TEST_F(CPUOpcodeTest, opcode_test_0x14_100)
 {
     SetUp({ 0x14 });
 
@@ -469,7 +469,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x14_17)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x24_40)
+TEST_F(CPUOpcodeTest, opcode_test_0x24_21)
 {
     SetUp({ 0x24 });
 
@@ -496,7 +496,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x24_40)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x24_36)
+TEST_F(CPUOpcodeTest, opcode_test_0x24_79)
 {
     SetUp({ 0x24 });
 
@@ -523,7 +523,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x24_36)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x34_49)
+TEST_F(CPUOpcodeTest, opcode_test_0x34_89)
 {
     SetUp({ 0x34 });
 
@@ -550,7 +550,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x34_49)
 	ASSERT_EQ(memAfter.readByte(0xBEEF), 0x06);
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x34_97)
+TEST_F(CPUOpcodeTest, opcode_test_0x34_40)
 {
     SetUp({ 0x34 });
 
@@ -577,7 +577,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x34_97)
 	ASSERT_EQ(memAfter.readByte(0xBEEF), 0x10);
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0xc_54)
+TEST_F(CPUOpcodeTest, opcode_test_0xc_51)
 {
     SetUp({ 0x0c });
 
@@ -604,7 +604,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0xc_54)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0xc_42)
+TEST_F(CPUOpcodeTest, opcode_test_0xc_27)
 {
     SetUp({ 0x0c });
 
@@ -631,7 +631,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0xc_42)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x1c_42)
+TEST_F(CPUOpcodeTest, opcode_test_0x1c_4)
 {
     SetUp({ 0x1c });
 
@@ -658,7 +658,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x1c_42)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x1c_37)
+TEST_F(CPUOpcodeTest, opcode_test_0x1c_20)
 {
     SetUp({ 0x1c });
 
@@ -685,7 +685,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x1c_37)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x2c_6)
+TEST_F(CPUOpcodeTest, opcode_test_0x2c_35)
 {
     SetUp({ 0x2c });
 
@@ -712,7 +712,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x2c_6)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x2c_90)
+TEST_F(CPUOpcodeTest, opcode_test_0x2c_4)
 {
     SetUp({ 0x2c });
 
@@ -739,7 +739,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x2c_90)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x3c_11)
+TEST_F(CPUOpcodeTest, opcode_test_0x3c_72)
 {
     SetUp({ 0x3c });
 
@@ -766,7 +766,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x3c_11)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x3c_90)
+TEST_F(CPUOpcodeTest, opcode_test_0x3c_67)
 {
     SetUp({ 0x3c });
 
@@ -793,7 +793,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x3c_90)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x2f_77)
+TEST_F(CPUOpcodeTest, opcode_test_0x2f_37)
 {
     SetUp({ 0x2f });
 
@@ -820,7 +820,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x2f_77)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x3f_75)
+TEST_F(CPUOpcodeTest, opcode_test_0x3f_78)
 {
     SetUp({ 0x3f });
 
@@ -847,7 +847,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x3f_75)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x37_43)
+TEST_F(CPUOpcodeTest, opcode_test_0x37_78)
 {
     SetUp({ 0x37 });
 
@@ -874,7 +874,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x37_43)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x40_84)
+TEST_F(CPUOpcodeTest, opcode_test_0x40_44)
 {
     SetUp({ 0x40 });
 
@@ -901,7 +901,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x40_84)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x41_14)
+TEST_F(CPUOpcodeTest, opcode_test_0x41_21)
 {
     SetUp({ 0x41 });
 
@@ -929,7 +929,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x41_14)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x42_82)
+TEST_F(CPUOpcodeTest, opcode_test_0x42_14)
 {
     SetUp({ 0x42 });
 
@@ -957,7 +957,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x42_82)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x43_47)
+TEST_F(CPUOpcodeTest, opcode_test_0x43_26)
 {
     SetUp({ 0x43 });
 
@@ -985,7 +985,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x43_47)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x44_92)
+TEST_F(CPUOpcodeTest, opcode_test_0x44_10)
 {
     SetUp({ 0x44 });
 
@@ -1013,7 +1013,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x44_92)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x45_42)
+TEST_F(CPUOpcodeTest, opcode_test_0x45_92)
 {
     SetUp({ 0x45 });
 
@@ -1041,7 +1041,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x45_42)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x47_74)
+TEST_F(CPUOpcodeTest, opcode_test_0x47_100)
 {
     SetUp({ 0x47 });
 
@@ -1069,7 +1069,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x47_74)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x48_48)
+TEST_F(CPUOpcodeTest, opcode_test_0x48_57)
 {
     SetUp({ 0x48 });
 
@@ -1097,7 +1097,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x48_48)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x49_51)
+TEST_F(CPUOpcodeTest, opcode_test_0x49_41)
 {
     SetUp({ 0x49 });
 
@@ -1124,7 +1124,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x49_51)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x4a_82)
+TEST_F(CPUOpcodeTest, opcode_test_0x4a_50)
 {
     SetUp({ 0x4a });
 
@@ -1152,7 +1152,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x4a_82)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x4b_45)
+TEST_F(CPUOpcodeTest, opcode_test_0x4b_48)
 {
     SetUp({ 0x4b });
 
@@ -1180,7 +1180,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x4b_45)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x4c_69)
+TEST_F(CPUOpcodeTest, opcode_test_0x4c_61)
 {
     SetUp({ 0x4c });
 
@@ -1208,7 +1208,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x4c_69)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x4d_5)
+TEST_F(CPUOpcodeTest, opcode_test_0x4d_50)
 {
     SetUp({ 0x4d });
 
@@ -1236,7 +1236,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x4d_5)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x4f_98)
+TEST_F(CPUOpcodeTest, opcode_test_0x4f_30)
 {
     SetUp({ 0x4f });
 
@@ -1264,7 +1264,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x4f_98)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x50_82)
+TEST_F(CPUOpcodeTest, opcode_test_0x50_36)
 {
     SetUp({ 0x50 });
 
@@ -1292,7 +1292,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x50_82)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x51_26)
+TEST_F(CPUOpcodeTest, opcode_test_0x51_3)
 {
     SetUp({ 0x51 });
 
@@ -1320,7 +1320,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x51_26)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x52_71)
+TEST_F(CPUOpcodeTest, opcode_test_0x52_63)
 {
     SetUp({ 0x52 });
 
@@ -1347,7 +1347,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x52_71)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x53_84)
+TEST_F(CPUOpcodeTest, opcode_test_0x53_93)
 {
     SetUp({ 0x53 });
 
@@ -1375,7 +1375,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x53_84)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x54_7)
+TEST_F(CPUOpcodeTest, opcode_test_0x54_58)
 {
     SetUp({ 0x54 });
 
@@ -1403,7 +1403,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x54_7)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x55_17)
+TEST_F(CPUOpcodeTest, opcode_test_0x55_74)
 {
     SetUp({ 0x55 });
 
@@ -1431,7 +1431,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x55_17)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x57_99)
+TEST_F(CPUOpcodeTest, opcode_test_0x57_86)
 {
     SetUp({ 0x57 });
 
@@ -1459,7 +1459,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x57_99)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x58_50)
+TEST_F(CPUOpcodeTest, opcode_test_0x58_61)
 {
     SetUp({ 0x58 });
 
@@ -1487,7 +1487,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x58_50)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x59_11)
+TEST_F(CPUOpcodeTest, opcode_test_0x59_93)
 {
     SetUp({ 0x59 });
 
@@ -1515,7 +1515,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x59_11)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x5a_82)
+TEST_F(CPUOpcodeTest, opcode_test_0x5a_25)
 {
     SetUp({ 0x5a });
 
@@ -1543,7 +1543,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x5a_82)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x5b_3)
+TEST_F(CPUOpcodeTest, opcode_test_0x5b_1)
 {
     SetUp({ 0x5b });
 
@@ -1570,7 +1570,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x5b_3)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x5c_22)
+TEST_F(CPUOpcodeTest, opcode_test_0x5c_42)
 {
     SetUp({ 0x5c });
 
@@ -1598,7 +1598,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x5c_22)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x5d_59)
+TEST_F(CPUOpcodeTest, opcode_test_0x5d_30)
 {
     SetUp({ 0x5d });
 
@@ -1626,7 +1626,7 @@ TEST_F(CPUOpcodeTest, opcode_test_0x5d_59)
 	
 }
 
-TEST_F(CPUOpcodeTest, opcode_test_0x5f_1)
+TEST_F(CPUOpcodeTest, opcode_test_0x5f_4)
 {
     SetUp({ 0x5f });
 
@@ -1651,6 +1651,395 @@ TEST_F(CPUOpcodeTest, opcode_test_0x5f_1)
 	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
 	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
 	ASSERT_EQ(after.E(), 0x21);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x60_22)
+{
+    SetUp({ 0x60 });
+
+	regs.H(0x69);
+	regs.B(0x40);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.H(), 0x40);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x61_44)
+{
+    SetUp({ 0x61 });
+
+	regs.H(0x69);
+	regs.C(0x40);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.H(), 0x40);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x62_49)
+{
+    SetUp({ 0x62 });
+
+	regs.H(0x69);
+	regs.D(0x60);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.H(), 0x60);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x63_66)
+{
+    SetUp({ 0x63 });
+
+	regs.H(0x69);
+	regs.E(0x40);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.H(), 0x40);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x64_67)
+{
+    SetUp({ 0x64 });
+
+	regs.H(0x40);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.H(), 0x40);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x65_29)
+{
+    SetUp({ 0x65 });
+
+	regs.H(0x69);
+	regs.L(0x40);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.H(), 0x40);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x67_41)
+{
+    SetUp({ 0x67 });
+
+	regs.A(0x40);
+	regs.H(0x69);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.H(), 0x40);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x68_97)
+{
+    SetUp({ 0x68 });
+
+	regs.B(0x21);
+	regs.L(0x69);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.L(), 0x21);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x69_86)
+{
+    SetUp({ 0x69 });
+
+	regs.C(0x69);
+	regs.L(0x69);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.L(), 0x69);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x6a_58)
+{
+    SetUp({ 0x6a });
+
+	regs.D(0x21);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.L(), 0x21);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x6b_64)
+{
+    SetUp({ 0x6b });
+
+	regs.E(0x69);
+	regs.L(0x40);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.L(), 0x69);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x6c_75)
+{
+    SetUp({ 0x6c });
+
+	regs.H(0x21);
+	regs.L(0x69);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.L(), 0x21);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x6d_35)
+{
+    SetUp({ 0x6d });
+
+	regs.L(0x21);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.L(), 0x21);
+	
+}
+
+TEST_F(CPUOpcodeTest, opcode_test_0x6f_13)
+{
+    SetUp({ 0x6f });
+
+	regs.A(0x21);
+	regs.L(0x69);
+	
+
+	
+	
+
+    cpu.cycle();
+
+    RegBank after;
+    RAM memAfter;
+    regs.copyCurrentState(after);
+    mem.copyCurrentState(memAfter);
+
+    ASSERT_EQ(cpu.cycleCount(), 4);
+
+	ASSERT_EQ(after.flagZero(), snapshot.flagZero());
+	ASSERT_EQ(after.flagSubtract(), snapshot.flagSubtract());
+	ASSERT_EQ(after.flagHalfCarry(), snapshot.flagHalfCarry());
+	ASSERT_EQ(after.flagCarry(), snapshot.flagCarry());
+	ASSERT_EQ(after.L(), 0x21);
 	
 }
 

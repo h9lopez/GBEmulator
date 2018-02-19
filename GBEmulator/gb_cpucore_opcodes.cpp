@@ -1025,6 +1025,145 @@ void CPUCore::initOpcodes()
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
+	// LD H,B
+	d_opcodes[0x60] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t);  },
+			[this]() { return d_regs->B(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD H,C
+	d_opcodes[0x61] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t);  },
+			[this]() { return d_regs->C(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD H,D
+	d_opcodes[0x62] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t);  },
+			[this]() { return d_regs->D(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD H,E
+	d_opcodes[0x63] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t);  },
+			[this]() { return d_regs->E(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD H,H
+	d_opcodes[0x64] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t);  },
+			[this]() { return d_regs->H(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD H,L
+	d_opcodes[0x65] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t);  },
+			[this]() { return d_regs->L(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD H,A
+	d_opcodes[0x67] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t);  },
+			[this]() { return d_regs->A(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, B
+	d_opcodes[0x68] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t);  },
+			[this]() { return d_regs->B(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, C
+	d_opcodes[0x69] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t);  },
+			[this]() { return d_regs->C(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, D
+	d_opcodes[0x6A] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t);  },
+			[this]() { return d_regs->D(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, E
+	d_opcodes[0x6B] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t);  },
+			[this]() { return d_regs->E(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, H
+	d_opcodes[0x6C] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t);  },
+			[this]() { return d_regs->H(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, L
+	d_opcodes[0x6D] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t);  },
+			[this]() { return d_regs->L(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, A
+	d_opcodes[0x6F] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t);  },
+			[this]() { return d_regs->A(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
 
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes

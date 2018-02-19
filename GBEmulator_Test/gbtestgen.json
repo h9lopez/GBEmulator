@@ -857,6 +857,213 @@
             "regs":{
                 "E": "0x21"
             }
+        },
+        {
+            "opcode": "0x60",
+            "startingState": {
+                "regs":{
+                   "H": "0x69",
+                   "B": "0x40"
+                }
+            },
+            "sequence": "60",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "H": "0x40"
+            }
+        },
+        {
+            "opcode": "0x61",
+            "startingState": {
+                "regs":{
+                    "H": "0x69",
+                    "C": "0x40"
+                }
+            },
+            "sequence": "61",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "H": "0x40"
+            }
+        },
+        {
+            "opcode": "0x62",
+            "startingState": {
+                "regs":{
+                    "H": "0x69",
+                    "D": "0x60"
+                }
+            },
+            "sequence": "62",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "H": "0x60"
+            }
+        },
+        {
+            "opcode": "0x63",
+            "startingState": {
+                "regs":{
+                    "H": "0x69",
+                    "E": "0x40"
+                }
+            },
+            "sequence": "63",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "H": "0x40"
+            }
+        },
+        {
+            "opcode": "0x64",
+            "startingState": {
+                "regs":{
+                    "H": "0x40"
+                }
+            },
+            "sequence": "64",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "H": "0x40"
+            }
+        },
+        {
+            "opcode": "0x65",
+            "startingState": {
+                "regs":{
+                    "H": "0x69",
+                    "L": "0x40"
+                }
+            },
+            "sequence": "65",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "H": "0x40"
+            }
+        },
+        {
+            "opcode": "0x67",
+            "startingState": {
+                "regs":{
+                    "H": "0x69",
+                    "A": "0x40"
+                }
+            },
+            "sequence": "67",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "H": "0x40"
+            }
+        },
+        {
+            "opcode": "0x68",
+            "startingState":{
+                "regs":{
+                    "L": "0x69",
+                    "B": "0x21"
+                }
+            },
+            "sequence": "68",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "L": "0x21"
+            }
+        },
+        {
+            "opcode": "0x69",
+            "startingState":{
+                "regs":{
+                    "L": "0x69",
+                    "C": "0x69"
+                }
+            },
+            "sequence": "69",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "L": "0x69"
+            }
+        },
+        {
+            "opcode": "0x6A",
+            "startingState":{
+                "regs":{
+                    "D": "0x21"
+                }
+            },
+            "sequence": "6A",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "L": "0x21"
+            }
+        },
+        {
+            "opcode": "0x6B",
+            "startingState":{
+                "regs":{
+                    "L": "0x40",
+                    "E": "0x69"
+                }
+            },
+            "sequence": "6B",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "L": "0x69"
+            }
+        },
+        {
+            "opcode": "0x6C",
+            "startingState":{
+                "regs":{
+                    "L": "0x69",
+                    "H": "0x21"
+                }
+            },
+            "sequence": "6C",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "L": "0x21"
+            }
+        },
+        {
+            "opcode": "0x6D",
+            "startingState":{
+                "regs":{
+                    "L": "0x21"
+                }
+            },
+            "sequence": "6D",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "L": "0x21"
+            }
+        },
+        {
+            "opcode": "0x6F",
+            "startingState":{
+                "regs":{
+                    "L": "0x69",
+                    "A": "0x21"
+                }
+            },
+            "sequence": "6F",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "L": "0x21"
+            }
         }
     ]
 }
