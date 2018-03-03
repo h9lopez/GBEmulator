@@ -1064,6 +1064,110 @@
             "regs":{
                 "L": "0x21"
             }
+        },
+        {
+            "opcode": "0x78",
+            "startingState":{
+                "regs":{
+                    "A": "0x69",
+                    "B": "0x21"
+                }
+            },
+            "sequence": "78",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "A": "0x21"
+            }
+        },
+        {
+            "opcode": "0x79",
+            "startingState":{
+                "regs":{
+                    "A": "0x69",
+                    "C": "0x69"
+                }
+            },
+            "sequence": "79",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "A": "0x69"
+            }
+        },
+        {
+            "opcode": "0x7A",
+            "startingState":{
+                "regs":{
+                    "A": "0x18",
+                    "D": "0x21"                    
+                }
+            },
+            "sequence": "7A",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "A": "0x21"
+            }
+        },
+        {
+            "opcode": "0x7B",
+            "startingState":{
+                "regs":{
+                    "A": "0x40",
+                    "E": "0x69"
+                }
+            },
+            "sequence": "7B",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "A": "0x69"
+            }
+        },
+        {
+            "opcode": "0x7C",
+            "startingState":{
+                "regs":{
+                    "A": "0x69",
+                    "H": "0x21"
+                }
+            },
+            "sequence": "7C",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "A": "0x21"
+            }
+        },
+        {
+            "opcode": "0x7D",
+            "startingState":{
+                "regs":{
+                    "A": "0x19",
+                    "L": "0x21"
+                }
+            },
+            "sequence": "7D",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "A": "0x21"
+            }
+        },
+        {
+            "opcode": "0x7F",
+            "startingState":{
+                "regs":{
+                    "A": "0x21"
+                }
+            },
+            "sequence": "7F",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 4,
+            "regs":{
+                "A": "0x21"
+            }
         }
     ]
 }
