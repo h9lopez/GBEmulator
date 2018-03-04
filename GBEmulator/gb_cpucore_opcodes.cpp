@@ -98,13 +98,30 @@ namespace {
 		// zero flag is ignored	
 	}
 
-
 	void loadByteIntoRegister(std::function<void(ByteType)> regSet,
 							std::function<ByteType(void)> valGet)
 	{
 		// NOTE: This function may seem useless but may come in handy later
 		//		 when we start doing profiling or debugging.
 		regSet( valGet() );
+	}
+
+	void performByteAdd(RegBank &regs,
+						std::function<void(ByteType)> regSetA,
+						std::function<ByteType(void)> regGetA,
+						std::function<ByteType(void)> regGetB)
+	{
+		bool isHalfCarry = ((regGetA() & 0xf) + (regGetB() & 0xf)) & 0x10;
+		unsigned int sum = static_cast<unsigned int>(regGetA()) +
+						   static_cast<unsigned int>(regGetB());
+		bool isCarry = sum & 0x100;
+
+		regSetA( (ByteType)sum );
+		
+		regs.flagZero( (sum & 0x11) == 0 );
+		regs.flagSubtract( false );
+		regs.flagHalfCarry(isHalfCarry);
+		regs.flagCarry(isCarry);	
 	}
 }
 
@@ -1345,6 +1362,112 @@ void CPUCore::initOpcodes()
 	d_opcodes[0x75] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->L());
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD REG, REG SECTION
+
+	// ADD A, B
+	d_opcodes[0x80] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->B(); }
+		);
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD A, C
+	d_opcodes[0x81] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->C(); }
+		);
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD A, D
+	d_opcodes[0x82] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->D(); }
+		);
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD A, E
+	d_opcodes[0x83] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->E(); }
+		);
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD A, H
+	d_opcodes[0x84] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->H(); }
+		);
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD A, L
+	d_opcodes[0x85] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->L(); }
+		);
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD A, (HL)
+	d_opcodes[0x86] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADD A, A
+	d_opcodes[0x87] = [this]()
+	{
+		performByteAdd( 
+			*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->A(); }
+		);
+
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
