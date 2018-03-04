@@ -1168,6 +1168,238 @@
             "regs":{
                 "A": "0x21"
             }
+        },
+        {
+            "opcode": "0x46",
+            "startingState":{
+                "regs":{
+                    "B": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "46",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "regs":{
+                "B": "0x69"
+            }
+        },
+        {
+            "opcode": "0x4E",
+            "startingState":{
+                "regs":{
+                    "C": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "4E",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "regs":{
+                "C": "0x69"
+            }
+        },
+        {
+            "opcode": "0x56",
+            "startingState":{
+                "regs":{
+                    "D": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "56",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "regs":{
+                "D": "0x69"
+            }
+        },
+        {
+            "opcode": "0x5E",
+            "startingState":{
+                "regs":{
+                    "E": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "5E",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "regs":{
+                "E": "0x69"
+            }
+        },
+        {
+            "opcode": "0x66",
+            "startingState":{
+                "regs":{
+                    "H": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "66",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "regs":{
+                "H": "0x69"
+            }
+        },
+        {
+            "opcode": "0x6E",
+            "startingState":{
+                "regs":{
+                    "L": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "6E",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "regs":{
+                "L": "0x69"
+            }
+        },
+        {
+            "opcode": "0x7E",
+            "startingState":{
+                "regs":{
+                    "A": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "7E",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "regs":{
+                "A": "0x69"
+            }
+        },
+        {
+            "opcode": "0x70",
+            "startingState":{
+                "regs":{
+                    "B": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "70",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "mem":{
+                "0xBABE": "0x21"
+            }
+        },
+        {
+            "opcode": "0x71",
+            "startingState":{
+                "regs":{
+                    "C": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "71",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "mem":{
+                "0xBABE": "0x21"
+            }
+        },
+        {
+            "opcode": "0x72",
+            "startingState":{
+                "regs":{
+                    "D": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "72",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "mem":{
+                "0xBABE": "0x21"
+            }
+        },
+        {
+            "opcode": "0x73",
+            "startingState":{
+                "regs":{
+                    "E": "0x21",
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "73",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "mem":{
+                "0xBABE": "0x21"
+            }
+        },
+        {
+            "opcode": "0x74",
+            "startingState":{
+                "regs":{
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "74",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "mem":{
+                "0xBABE": "0xBA"
+            }
+        },
+        {
+            "opcode": "0x75",
+            "startingState":{
+                "regs":{
+                    "HL": "0xBABE"
+                },
+                "mem":{
+                    "0xBABE": "0x69"
+                }
+            },
+            "sequence": "75",
+            "flags": ["U", "U", "U", "U"],
+            "cycles": 8,
+            "mem":{
+                "0xBABE": "0xBE"
+            }
         }
     ]
 }

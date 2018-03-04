@@ -1236,6 +1236,118 @@ void CPUCore::initOpcodes()
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
+	// LD B, (HL)
+	d_opcodes[0x46] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->B(t); },
+			[this]() { return d_ram->readByte( d_regs->HL() ); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD C, (HL)
+	d_opcodes[0x4E] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->C(t); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD D, (HL)
+	d_opcodes[0x56] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->D(t); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD E, (HL)
+	d_opcodes[0x5E] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->E(t); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD H, (HL)
+	d_opcodes[0x66] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->H(t); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD L, (HL)
+	d_opcodes[0x6E] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->L(t); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD A, (HL)
+	d_opcodes[0x7E] = [this]()
+	{
+		loadByteIntoRegister(
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_ram->readByte(d_regs->HL()); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD (HL), B
+	d_opcodes[0x70] = [this]()
+	{
+		d_ram->writeByte(d_regs->HL(), d_regs->B());
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD (HL), C
+	d_opcodes[0x71] = [this]()
+	{
+		d_ram->writeByte(d_regs->HL(), d_regs->C());
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD (HL), D
+	d_opcodes[0x72] = [this]()
+	{
+		d_ram->writeByte(d_regs->HL(), d_regs->D());
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD (HL), E
+	d_opcodes[0x73] = [this]()
+	{
+		d_ram->writeByte(d_regs->HL(), d_regs->E());
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD (HL), H
+	d_opcodes[0x74] = [this]()
+	{
+		d_ram->writeByte(d_regs->HL(), d_regs->H());
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// LD (HL), L
+	d_opcodes[0x75] = [this]()
+	{
+		d_ram->writeByte(d_regs->HL(), d_regs->L());
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes
 	
