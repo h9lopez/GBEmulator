@@ -4,6 +4,7 @@ TEST_F(CPUOpcodeTest, opcode_test_{test_name})
 
 {preRegSets}
 {preMemSets}
+{preFlagSets}
 
 {preRegAsserts}
 {preMemAsserts}

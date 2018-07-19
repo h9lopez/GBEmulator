@@ -123,6 +123,22 @@ namespace {
 		regs.flagHalfCarry(isHalfCarry);
 		regs.flagCarry(isCarry);	
 	}
+
+	void performADC(RegBank &regs,
+		std::function<ByteType(void)> secondaryRegGet)
+	{
+		performByteAdd(regs,
+			[&regs](ByteType t) { regs.A(t); },
+			[&regs]() { return regs.A(); },
+			secondaryRegGet
+		);
+
+		performByteAdd(regs,
+			[&regs](ByteType t) {regs.A(t); },
+			[&regs]() { return regs.A(); },
+			[&regs]() { return regs.flagCarry() ? 1 : 0; }
+		);
+	}
 }
 
 
@@ -1470,6 +1486,77 @@ void CPUCore::initOpcodes()
 
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
+
+	// ADC A,B
+	d_opcodes[0x88] = [this]()
+	{
+		// Do regular A + B first
+		performByteAdd(*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->B(); }
+		);
+
+		// I guess we're technically adding from right to left, c + B + A
+		performByteAdd(*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->flagCarry() ? 1 : 0; });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADC A,C
+	d_opcodes[0x89] = [this]()
+	{
+		performADC(*d_regs, [this]() { return d_regs->C(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADC A,D
+	d_opcodes[0x8A] = [this]()
+	{
+		performADC(*d_regs, [this]() {return d_regs->D(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADC A,E
+	d_opcodes[0x8B] = [this]()
+	{
+		performADC(*d_regs, [this]() {return d_regs->E(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADC A,H
+	d_opcodes[0x8C] = [this]()
+	{
+		performADC(*d_regs, [this]() {return d_regs->H(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADC A,L
+	d_opcodes[0x8D] = [this]()
+	{
+		performADC(*d_regs, [this]() {return d_regs->L(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADC A,(HL) TODO: DO THIS
+	d_opcodes[0x8D] = [this]()
+	{
+		performADC(*d_regs, [this]() {return d_regs->L(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// ADC A,A TODO: DO THIS
+	d_opcodes[0x8D] = [this]()
+	{
+		performADC(*d_regs, [this]() {return d_regs->L(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+
 
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes

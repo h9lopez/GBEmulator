@@ -1,7 +1,7 @@
 #include "gb_regs.h"
 
 RegBank::RegBank()
-	: d_fzero(0), d_fsub(0), d_fhc(0), d_regA(0)
+	: d_fzero(0), d_fsub(0), d_fhc(0), d_fc(0), d_regA(0)
 {
 	d_regBC.word = 0;
 	d_regDE.word = 0;

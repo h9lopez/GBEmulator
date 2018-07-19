@@ -43,43 +43,22 @@ class JSONValidator(object):
 
         Returns - A SingleOpcodeTest object
         """
-        res = self.__valHex(jobj["opcode"])
-        if res == False:
-            return False
-        self.testObj.opcode = res
+        self.testObj.opcode = self.__valHex(jobj["opcode"])
 
-        res = self.__valCycles(jobj["cycles"])
-        if res == False:
-            return False
-        self.testObj.cycles = res
+        self.testObj.cycles = self.__valCycles(jobj["cycles"])
 
-        res = self.__valByteSequence(jobj["sequence"])
-        if res == False:
-            return False
-        self.testObj.sequence = res
+        self.testObj.sequence = self.__valByteSequence(jobj["sequence"])
 
-        res = self.__valFlags(jobj["flags"])
-        if res == False:
-            return False
-        self.testObj.flagResult = res
+        self.testObj.flagResult = self.__valFlags(jobj["flags"])
 
         if "regs" in jobj:
-            res = self.__valRegs(jobj["regs"])
-            if res == False:
-                return False
-            self.testObj.regsResult = res
+            self.testObj.regsResult = self.__valRegs(jobj["regs"])
 
         if "mem" in jobj:
-            res = self.__valMem(jobj["mem"])
-            if res == False:
-                return False
-            self.testObj.memResult = res
+            self.testObj.memResult = self.__valMem(jobj["mem"])
 
         if "startingState" in jobj:
-            res = self.__valStartingState(jobj["startingState"])
-            if res == False:
-                return False
-            self.testObj.startingState = res
+            self.testObj.startingState = self.__valStartingState(jobj["startingState"])
 
         return self.testObj
 
@@ -89,19 +68,15 @@ class JSONValidator(object):
         that are asserted before the actual test runs.
         """
         startingStateDict = {"mem": {}, "regs": {}}
-        
         # Look for memory state first
         if "mem" in start:
-            res = self.__valMem(start["mem"])
-            if res == False:
-                return res
-            startingStateDict["mem"] = res
+            startingStateDict["mem"] = self.__valMem(start["mem"])
 
         if "regs" in start:
-            res = self.__valRegs(start["regs"])
-            if res == False:
-                return res
-            startingStateDict["regs"] = res
+            startingStateDict["regs"] = self.__valRegs(start["regs"])
+
+        if "flags" in start:
+            startingStateDict["flags"] = self.__valFlags(start["flags"])
 
         return startingStateDict
 
@@ -115,8 +90,9 @@ class JSONValidator(object):
         """
         try:
             return hex(int(op, 16))
-        except:
+        except Exception as e:
             print "Could not validate hex object " + str(op)
+            raise e
         return False
 
     def __valFlags(self, flagArray):
@@ -126,8 +102,9 @@ class JSONValidator(object):
         """
         try:
             return [ FLAG_VAL_MAP[x] for x in flagArray ]
-        except:
+        except Exception as e:
             print "Could not validate flags " + str(flagArray)
+            raise e
         return False
     
     def __valByteSequence(self, sequence):
@@ -137,13 +114,14 @@ class JSONValidator(object):
         if type(sequence) == type([]):
             try:
                 return [ x.decode("hex") for x in sequence ]
-            except:
-                pass
+            except Exception as e:
+                raise e
         elif type(sequence) == type(u""):
             try:
                 return list(sequence.decode("hex"))
-            except:
-                pass
+            except Exception as e:
+                print "Sequence " + str(sequence)
+                raise Exception("Failed on validating string sequence of {seq}, excp={exc}".format(seq=str(sequence), exc=str(e)))
         
         return False
 
@@ -154,8 +132,9 @@ class JSONValidator(object):
         """
         try:
             return int(cycles)
-        except:
+        except Exception as e:
             print "Error validating number of cycles " + str(cycles)
+            raise e
         return False
 
     def __valRegs(self, regs):
@@ -169,24 +148,20 @@ class JSONValidator(object):
         # Test whether there are duplicate items
         if len(regKeys) != len(regs.keys()):
             print "Duplicate regs in set"
-            return False
+            raise Exception("Duplicate regs")
         
         # Check to see if all reg values are valid
         if not set.issubset(regKeys, VALID_REG_VALS):
             print "Unrecognized register values in set"
             print "\t" + str(regKeys)  
-            return False
+            raise Exception("Unrecognized register values, vals={vals}".format(str(regKeys)))
 
         # Then just set the values and return them
         regDict = {}
 
-        try:
-            for key in regs.keys():
-                regDict[key] = hex(int(regs[key], 16))
-            return regDict
-        except:
-            print "Error parsing values for reg dict"
-        return False
+        for key in regs.keys():
+            regDict[key] = hex(int(regs[key], 16))
+        return regDict
         
     def __valMem(self, mem):
         """Validate the sections of memory that were specified in the dictionary.
@@ -200,8 +175,9 @@ class JSONValidator(object):
 
             # Make sure it's within limit
             if realVal > MEM_UPPER_LIMIT:
-                print "Memory adderss " + str(key) + " is out of bounds. (UPPER LIMIT " + str(MEM_UPPER_LIMIT) + ")"
-                return False
+                errStr = "Memory adderss " + str(key) + " is out of bounds. (UPPER LIMIT " + str(MEM_UPPER_LIMIT) + ")"
+                print errStr
+                raise MemoryError(errStr)
 
             # Check the value to make sure it's valid hex too
             realVal = int(mem[key], 16)

@@ -155,6 +155,44 @@ class SingleOpcodeTest(object):
         
         return "\t" + ("\n\t".join(res))
 
+    def _buildFlagSets(self, accessToken, valMap):
+        """Function returns a series of C++ calls that sets flag values PRIOR to command exec.
+        No assertions, just sets.
+        """
+
+        # This is identical in structure to flag asserts function
+        # TODO: Generalize this into one function?
+        res = []
+
+        # It's always a static set so no need to do dynamic looping
+
+        idx = 0
+        # Zero flag
+        res.append( 
+            '{accessToken}.flagZero({newVal});'.format(accessToken=accessToken, newVal='1' if valMap[idx] == FlagStatus.ONE else '0')
+         )
+
+        idx += 1
+        # Subtract flag
+        res.append( 
+            '{accessToken}.flagSubtract({newVal});'.format(accessToken=accessToken, newVal='1' if valMap[idx] == FlagStatus.ONE else '0')
+         )
+
+        idx += 1
+        # Half carry
+        res.append( 
+            '{accessToken}.flagHalfCarry({newVal});'.format(accessToken=accessToken, newVal='1' if valMap[idx] == FlagStatus.ONE else '0')
+         )
+
+        idx += 1
+        # Carry flag
+        res.append( 
+            '{accessToken}.flagCarry({newVal});'.format(accessToken=accessToken, newVal='1' if valMap[idx] == FlagStatus.ONE else '0')
+         )
+
+        return "\t" + ("\n\t".join(res))
+
+
     def generateCpp(self):
         """Function assumes the object has been filled and ready to be generated.
         This will spit out a single C++ Gtest function to test this specific opcode
@@ -175,6 +213,7 @@ class SingleOpcodeTest(object):
             'flagAsserts': self._buildFlagAsserts(),
             'preRegSets': self._buildRegSets('regs', self.startingState["regs"]),
             'preMemSets': self._buildMemSets('mem', self.startingState["mem"]),
+            'preFlagSets': self._buildFlagSets('regs', self.startingState["flags"] if "flags" in self.startingState else [0,0,0,0]),
             'preRegAsserts': self._buildRegAsserts('snapshot', []),
             'preMemAsserts': self._buildMemAsserts('memSnapshot', []),
             'regAsserts': self._buildRegAsserts('after', self.regsResult),
@@ -197,17 +236,23 @@ def main():
 
     # Generate single opcodes tests
     for test in filData["single_opcode"]["tests"]:
+        print "*****Beginning parsing for opcode {op}".format(op=test["opcode"])
+        print "\t- Validating------",
         validator = JSONValidator(SingleOpcodeTest())
         validateRes = validator.populateTest(test)
         if validateRes == False:
             print "ERROR: Could not parse test-> " + str(test)
             break
+        else:
+            print "\t[OK]"
         # If succeeds, the return type is of type SingleOpcodeTest
         testObj = validateRes
 
         processed_opcodes.append( testObj.opcode )
         
+        print "\t- Generating CPP------",
         resultingCode += testObj.generateCpp() + "\n\n"
+        print "\t[OK]"
         
 
     # Output generated code to file.
