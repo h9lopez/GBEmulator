@@ -1,4 +1,6 @@
 #include <bitset>
+#include <iostream>
+
 #include "gb_typeutils.h"
 #include "CPUCore.h"
 #include "ReverseOpcodeMap.h"
@@ -118,15 +120,59 @@ namespace {
 
 		regSetA( (ByteType)sum );
 		
-		regs.flagZero( (sum & 0x11) == 0 );
+		regs.flagZero( (sum & 0xFF) == 0 );
 		regs.flagSubtract( false );
 		regs.flagHalfCarry(isHalfCarry);
 		regs.flagCarry(isCarry);	
 	}
 
+	void performByteSub(RegBank &regs,
+						std::function<void(ByteType)> regSetA,
+						std::function<ByteType(void)> regGetA,
+						std::function<ByteType(void)> regGetB)
+	{
+		// This might be unhealthily expensive
+		bool isHalfCarry = !((((regGetA() & 0xf) | 0x10) - (regGetB() & 0xf)) & 0x10);
+		// Can we just take the twos complement of a value and do that?
+
+		ByteType a = regGetA();
+		ByteType b = regGetB();
+		unsigned int result = static_cast<unsigned int>(regGetA()) -
+							  ((static_cast<unsigned int>(regGetB())));
+
+		bool isCarry = ((int)result) & 0x100;
+
+		regSetA( static_cast<ByteType>(result) );
+
+		regs.flagZero( (result & 0xFF) == 0 );
+		regs.flagSubtract(true);
+		regs.flagHalfCarry(isHalfCarry);
+		regs.flagCarry(isCarry);
+	}
+
+	void performSBC(RegBank &regs,
+		std::function<ByteType(void)> secondaryRegGet)
+	{
+		bool flagCarry = regs.flagCarry();
+
+		performByteSub(regs, 
+			[&regs](ByteType t) { regs.A(t); },
+			[&regs]() { return regs.A(); },
+			secondaryRegGet
+		);
+
+		performByteSub(regs, 
+			[&regs](ByteType t) { regs.A(t); },
+			[&regs]() { return regs.A(); },
+			[&regs, flagCarry]() { return flagCarry; }
+		);
+	}
+
 	void performADC(RegBank &regs,
 		std::function<ByteType(void)> secondaryRegGet)
 	{
+		bool flagCarry = regs.flagCarry();
+
 		performByteAdd(regs,
 			[&regs](ByteType t) { regs.A(t); },
 			[&regs]() { return regs.A(); },
@@ -136,7 +182,7 @@ namespace {
 		performByteAdd(regs,
 			[&regs](ByteType t) {regs.A(t); },
 			[&regs]() { return regs.A(); },
-			[&regs]() { return regs.flagCarry() ? 1 : 0; }
+			[&regs, flagCarry]() { return flagCarry; }
 		);
 	}
 }
@@ -1490,19 +1536,20 @@ void CPUCore::initOpcodes()
 	// ADC A,B
 	d_opcodes[0x88] = [this]()
 	{
-		// Do regular A + B first
-		performByteAdd(*d_regs,
-			[this](ByteType t) { d_regs->A(t); },
-			[this]() { return d_regs->A(); },
-			[this]() { return d_regs->B(); }
-		);
+		//// Do regular A + B first
+		//performByteAdd(*d_regs,
+		//	[this](ByteType t) { d_regs->A(t); },
+		//	[this]() { return d_regs->A(); },
+		//	[this]() { return d_regs->B(); }
+		//);
 
-		// I guess we're technically adding from right to left, c + B + A
-		performByteAdd(*d_regs,
-			[this](ByteType t) { d_regs->A(t); },
-			[this]() { return d_regs->A(); },
-			[this]() { return d_regs->flagCarry() ? 1 : 0; });
+		//// I guess we're technically adding from right to left, c + B + A
+		//performByteAdd(*d_regs,
+		//	[this](ByteType t) { d_regs->A(t); },
+		//	[this]() { return d_regs->A(); },
+		//	[this]() { return d_regs->flagCarry() ? 1 : 0; });
 
+		performADC(*d_regs, [this]() { return d_regs->B(); });
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
@@ -1542,21 +1589,194 @@ void CPUCore::initOpcodes()
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
-	// ADC A,(HL) TODO: DO THIS
-	d_opcodes[0x8D] = [this]()
+	// ADC A,(HL)
+	d_opcodes[0x8E] = [this]()
 	{
-		performADC(*d_regs, [this]() {return d_regs->L(); });
+		performADC(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); });
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
-	// ADC A,A TODO: DO THIS
-	d_opcodes[0x8D] = [this]()
+	// ADC A,A
+	d_opcodes[0x8F] = [this]()
 	{
-		performADC(*d_regs, [this]() {return d_regs->L(); });
+		performADC(*d_regs, [this]() { return d_regs->A(); });
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
+	// ADC A,d8
+	d_opcodes[0xCE] = [this]()
+	{
+		ByteType numLiteral = readNextByte();
+		performADC(*d_regs, [this, numLiteral]() { return numLiteral; });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
 
+	// SUB B
+	d_opcodes[0x90] = [this]()
+	{
+		performByteSub(*d_regs,	[this](ByteType t) { return d_regs->A(t); },
+								[this]() { return d_regs->A(); },
+								[this]() { return d_regs->B(); }
+			);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB C
+	d_opcodes[0x91] = [this]()
+	{
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->C(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB D
+	d_opcodes[0x92] = [this]()
+	{
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->D(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB E
+	d_opcodes[0x93] = [this]()
+	{
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->E(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB H
+	d_opcodes[0x94] = [this]()
+	{
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->H(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB L
+	d_opcodes[0x95] = [this]()
+	{
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->L(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB (HL)
+	d_opcodes[0x96] = [this]()
+	{
+		WordType a = d_regs->HL();
+		ByteType read = d_ram->readByte(a);
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+								[this]() { return d_regs->A(); },
+								[this]() { return d_ram->readByte( d_regs->HL() ); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB A
+	d_opcodes[0x97] = [this]()
+	{
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return d_regs->A(); }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SUB (d8)
+	d_opcodes[0xD6] = [this]()
+	{
+		ByteType numLiteral = readNextByte();
+
+		performByteSub(*d_regs, [this](ByteType t) { return d_regs->A(t); },
+			[this]() { return d_regs->A(); },
+			[this, numLiteral]() { return numLiteral; }
+		);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,B
+	d_opcodes[0x98] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_regs->B(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,C
+	d_opcodes[0x99] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_regs->C(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,D
+	d_opcodes[0x9A] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_regs->D(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,E
+	d_opcodes[0x9B] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_regs->E(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,H
+	d_opcodes[0x9C] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_regs->H(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,L
+	d_opcodes[0x9D] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_regs->L(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,(HL)
+	d_opcodes[0x9E] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_ram->readByte( d_regs->HL() ); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,A
+	d_opcodes[0x9F] = [this]()
+	{
+		performSBC(*d_regs, [this]() { return d_regs->A(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// SBC A,d8
+	d_opcodes[0xDE] = [this]()
+	{
+		ByteType numLiteral = readNextByte();
+		performSBC(*d_regs, [this, numLiteral]() { return numLiteral; });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
 
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes

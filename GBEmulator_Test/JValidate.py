@@ -76,6 +76,9 @@ class JSONValidator(object):
             startingStateDict["regs"] = self.__valRegs(start["regs"])
 
         if "flags" in start:
+            # If variable is in string form, split into an array
+            if not isinstance(start["flags"], list):
+                start["flags"] = list(start["flags"])
             startingStateDict["flags"] = self.__valFlags(start["flags"])
 
         return startingStateDict

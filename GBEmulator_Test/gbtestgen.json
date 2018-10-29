@@ -1413,10 +1413,99 @@
             "sequence": "88",
             "cycles": 4,
             "regs":{
-                "A": "0x43",
+                "A": "0x44",
                 "B": "0x22"
             },
             "flags": ["0", "0", "0", "0"]
+        },
+        {
+            "opcode": "0x90",
+            "startingState":
+            {
+                "regs": {
+                    "A": "0x0A",
+                    "B": "0x05"
+                },
+                "flags": ["0","0","0","0"]
+            },
+            "sequence": "90",
+            "cycles": 4,
+            "regs": {
+                "A": "0x05",
+                "B": "0x05"
+            },
+            "flags": ["0", "1", "0", "0"]
+        },
+        {
+            "opcode": "0x90",
+            "startingState":
+            {
+                "regs": {
+                    "A": "0x00",
+                    "B": "0x0F"
+                },
+                "flags": ["0","0","0","0"]
+            },
+            "sequence": "90",
+            "cycles": 4,
+            "regs": {
+                "A": "0xF1",
+                "B": "0x0F"
+            },
+            "flags": ["0", "1", "1", "1"]
+        },
+        {
+            "opcode": "0x96",
+            "startingState":
+            {
+                "regs": {
+                    "A": "0x72",
+                    "HL": "0xBABE"
+                },
+                "mem": {
+                    "0xBABE": "0x69"
+                },
+                "flags": ["0","0","0","0"]
+            },
+            "sequence": "96",
+            "cycles": 8,
+            "regs": {
+                "A": "0x09"
+            },
+            "flags": ["0", "1", "1", "0"]
+        },
+        {
+            "opcode": "0xD6",
+            "startingState":
+            {
+                "regs": {
+                    "A": "0x72"
+                },
+                "flags": ["0","0","0","0"]
+            },
+            "sequence": "D669",
+            "cycles": 8,
+            "regs": {
+                "A": "0x09"
+            },
+            "flags": ["0", "1", "1", "0"]
+        },
+        {
+            "opcode": "0x98",
+            "startingState": {
+                "regs": {
+                    "A": "0x70",
+                    "B": "0x10"
+                },
+                "flags": ["0", "0", "0", "1"]
+            },
+            "sequence": "98",
+            "cycles": 4,
+            "regs": {
+                "A": "0x5F",
+                "B": "0x10"
+            },
+            "flags": "0110"
         }
     ]
 }
