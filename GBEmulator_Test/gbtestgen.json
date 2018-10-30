@@ -1552,6 +1552,53 @@
                 "A": "0x40"
             },
             "flags": "0010"
+        },
+        {
+            "opcode": "0xB4",
+            "startingState": {
+                "regs": {
+                    "A": "0x69",
+                    "H": "0x44"
+                }
+            },
+            "sequence": "B4",
+            "cycles": 4,
+            "regs": {
+                "A": "0x6D"
+            },
+            "flags": "0000"
+        },
+        {
+            "opcode": "0xB6",
+            "startingState": {
+                "regs": {
+                    "A": "0x69",
+                    "HL": "0xBEEF"
+                },
+                "mem": {
+                    "0xBEEF": "0x44"
+                }
+            },
+            "sequence": "B6",
+            "cycles": 8,
+            "regs": {
+                "A": "0x6D"
+            },
+            "flags": "0000"
+        },
+        {
+            "opcode": "0xB7",
+            "startingState": {
+                "regs": {
+                    "A": "0x69"
+                }
+            },
+            "sequence": "B7",
+            "cycles": 4,
+            "regs": {
+                "A": "0x69"
+            },
+            "flags": "0000"
         }
     ]
 }

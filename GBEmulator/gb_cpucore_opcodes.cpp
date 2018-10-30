@@ -198,6 +198,19 @@ namespace {
 		regs.flagHalfCarry(1);
 		regs.flagCarry(0);
 	}
+
+	void performOR(RegBank &regs,
+		std::function<ByteType(void)> rhsGet)
+	{
+		ByteType result = regs.A() | rhsGet();
+
+		regs.A(result);
+
+		regs.flagZero(result == 0x0);
+		regs.flagSubtract(0);
+		regs.flagHalfCarry(0);
+		regs.flagCarry(0);
+	}
 }
 
 
@@ -1861,6 +1874,70 @@ void CPUCore::initOpcodes()
 		ByteType numLiteral = readNextByte();
 		performAND(*d_regs, [this, numLiteral]() { return numLiteral; });
 
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR B
+	d_opcodes[0xB0] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_regs->B(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR C
+	d_opcodes[0xB1] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_regs->C(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR D
+	d_opcodes[0xB2] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_regs->D(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR E
+	d_opcodes[0xB3] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_regs->E(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR H
+	d_opcodes[0xB4] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_regs->H(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR L
+	d_opcodes[0xB5] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_regs->L(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR (HL)
+	d_opcodes[0xB6] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_ram->readByte(d_regs->HL()); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR A
+	d_opcodes[0xB7] = [this]()
+	{
+		performOR(*d_regs, [this]() {return d_regs->A(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// OR d8
+	d_opcodes[0xF6] = [this]()
+	{
+		ByteType numLiteral = readNextByte();
+		performOR(*d_regs, [this, numLiteral]() {return numLiteral; });
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
