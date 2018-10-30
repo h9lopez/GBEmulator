@@ -1941,6 +1941,98 @@ void CPUCore::initOpcodes()
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
+
+	// TODO: Maybe these are worth revisiting? It'd be interesting to know performance losses doing it this method.
+	// CP B
+	d_opcodes[0xB8] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x90]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP C
+	d_opcodes[0xB9] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x91]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP D
+	d_opcodes[0xBA] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x92]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP E
+	d_opcodes[0xBB] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x93]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP H
+	d_opcodes[0xBC] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x94]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP L
+	d_opcodes[0xBD] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x95]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP (HL)
+	d_opcodes[0xBE] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x96]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP A
+	d_opcodes[0xBF] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0x97]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// CP d8
+	d_opcodes[0xFE] = [this]()
+	{
+		// Save current value of A. Do subtraction. Restore A.
+		ByteType previousRegVal = d_regs->A();
+		d_opcodes[0xD6]();
+		d_regs->A(previousRegVal);
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes
 	
