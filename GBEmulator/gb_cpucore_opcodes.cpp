@@ -185,6 +185,19 @@ namespace {
 			[&regs, flagCarry]() { return flagCarry; }
 		);
 	}
+
+	void performAND(RegBank &regs,
+		std::function<ByteType(void)> rhsGet)
+	{
+		ByteType result = regs.A() & rhsGet();
+
+		regs.A(result);
+
+		regs.flagZero(result == 0);
+		regs.flagSubtract(0);
+		regs.flagHalfCarry(1);
+		regs.flagCarry(0);
+	}
 }
 
 
@@ -1774,6 +1787,79 @@ void CPUCore::initOpcodes()
 	{
 		ByteType numLiteral = readNextByte();
 		performSBC(*d_regs, [this, numLiteral]() { return numLiteral; });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND B
+	d_opcodes[0xA0] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_regs->B(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND C
+	d_opcodes[0xA1] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_regs->C(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND D
+	d_opcodes[0xA2] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_regs->D(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND E
+	d_opcodes[0xA3] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_regs->E(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND H
+	d_opcodes[0xA4] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_regs->H(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND L
+	d_opcodes[0xA5] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_regs->L(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND (HL)
+	d_opcodes[0xA6] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND A
+	d_opcodes[0xA7] = [this]()
+	{
+		performAND(*d_regs, [this]() { return d_regs->A(); });
+
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// AND d8
+	d_opcodes[0xE6] = [this]()
+	{
+		ByteType numLiteral = readNextByte();
+		performAND(*d_regs, [this, numLiteral]() { return numLiteral; });
 
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};

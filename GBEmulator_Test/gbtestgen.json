@@ -1506,6 +1506,52 @@
                 "B": "0x10"
             },
             "flags": "0110"
+        },
+        {
+            "opcode": "0xA0",
+            "startingState": {
+                "regs": {
+                    "A": "0x69",
+                    "B": "0x44"
+                }
+            },
+            "sequence": "A0",
+            "cycles": 4,
+            "regs": {
+                "A": "0x40",
+                "B": "0x44"
+            },
+            "flags": "0010"
+        },
+        {
+            "opcode": "0xA4",
+            "startingState": {
+                "regs": {
+                    "A": "0x69",
+                    "H": "0x44"
+                }
+            },
+            "sequence": "A4",
+            "cycles": 4,
+            "regs": {
+                "A": "0x40",
+                "H": "0x44"
+            },
+            "flags": "0010"
+        },
+        {
+            "opcode": "0xE6",
+            "startingState": {
+                "regs": {
+                    "A": "0x69"
+                }
+            },
+            "sequence": "E644",
+            "cycles": 8,
+            "regs": {
+                "A": "0x40"
+            },
+            "flags": "0010"
         }
     ]
 }
