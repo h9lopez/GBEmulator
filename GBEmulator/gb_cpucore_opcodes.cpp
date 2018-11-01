@@ -223,6 +223,16 @@ namespace {
 
 		regs.SP(regs.SP() + 2);
 	}
+
+	void pushSP(RegBank &regs, RAM &ram, std::function<WordType()> rhsGet)
+	{
+		WordRegister construct;
+		construct.word = rhsGet();
+
+		ram.writeByte(regs.SP() - 1, construct.hi);
+		ram.writeByte(regs.SP() - 2, construct.lo);
+		regs.SP( regs.SP() - 2 );
+	}
 }
 
 
@@ -2072,6 +2082,34 @@ void CPUCore::initOpcodes()
 	d_opcodes[0xF1] = [this]()
 	{
 		popSP(*d_regs, *d_ram, [this](WordType t) { d_regs->AF(t); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// PUSH BC
+	d_opcodes[0xC5] = [this]()
+	{
+		pushSP(*d_regs, *d_ram, [this]() { return d_regs->BC(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// PUSH DE
+	d_opcodes[0xD5] = [this]()
+	{
+		pushSP(*d_regs, *d_ram, [this]() { return d_regs->DE(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// PUSH HL
+	d_opcodes[0xE5] = [this]()
+	{
+		pushSP(*d_regs, *d_ram, [this]() { return d_regs->HL(); });
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// PUSH AF
+	d_opcodes[0xF5] = [this]()
+	{
+		pushSP(*d_regs, *d_ram, [this]() { return d_regs->AF(); });
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
