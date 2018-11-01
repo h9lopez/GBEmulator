@@ -21,6 +21,7 @@ public:
     ByteType L() const;
 
     // Getters for the word regs
+	WordType AF() const;
     WordType BC() const;    
     WordType DE() const;    
     WordType HL() const;    
@@ -37,6 +38,7 @@ public:
     void L(ByteType val);
 
     // Setters for the word regs
+	void AF(WordType val);
     void BC(WordType val);    
     void DE(WordType val);    
     void HL(WordType val);    
@@ -57,20 +59,7 @@ public:
     void flagHalfCarry(bool on);
     void flagCarry(bool on);
 
-
-
-
 private:
-    typedef union
-    {
-        WordType word;
-        struct {
-            ByteType lo;
-            ByteType hi;
-        };
-    } WordRegister;
-    typedef ByteType ByteRegister;
-
     Flag d_fzero;
     Flag d_fsub;
     Flag d_fhc;

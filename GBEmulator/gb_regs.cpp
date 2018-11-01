@@ -1,3 +1,4 @@
+#include <bitset>
 #include "gb_regs.h"
 
 RegBank::RegBank()
@@ -62,6 +63,20 @@ ByteType RegBank::L() const
 	return ByteType(d_regHL.lo);
 }
 
+WordType RegBank::AF() const
+{
+	// This is a bit of a special case because internally we don't store AF as the same register.
+	// Should we?
+	// TODO: Come back and revisit this. Thankfully API hides it pretty well.
+	std::bitset<16> constructReg( (A() << 8) & 0xFF00 );
+	constructReg.set(7, flagZero());
+	constructReg.set(6, flagSubtract());
+	constructReg.set(5, flagHalfCarry());
+	constructReg.set(4, flagCarry());
+
+	return static_cast<WordType>(constructReg.to_ulong());
+}
+
 WordType RegBank::BC() const
 {
 	return WordType(d_regBC.word);
@@ -120,6 +135,15 @@ void RegBank::H(ByteType val)
 void RegBank::L(ByteType val)
 {
 	d_regHL.lo = val;
+}
+
+void RegBank::AF(WordType val)
+{
+	A( (val & 0xFF00) >> 8 );
+	flagZero( (val & 0x80) >> 7 );
+	flagSubtract( (val & 0x40) >> 6 );
+	flagHalfCarry( (val & 0x20) >> 5 );
+	flagCarry( (val & 0x10) >> 4 );
 }
 
 void RegBank::BC(WordType val)

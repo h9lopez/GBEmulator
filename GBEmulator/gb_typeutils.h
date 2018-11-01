@@ -8,7 +8,20 @@ typedef uint16_t WordType;
 typedef uint8_t ByteType;
 typedef bool Flag;
 
+// For usage mainly within the register bank implementation
+typedef union
+{
+	WordType word;
+	struct {
+		ByteType lo;
+		ByteType hi;
+	};
+} WordRegister;
+typedef ByteType ByteRegister;
+
+
 static const int BYTETYPE_SIZE = 8;
+static const int WORDTYPE_SIZE = BYTETYPE_SIZE * 2;
 
 typedef uint16_t Address;
 
