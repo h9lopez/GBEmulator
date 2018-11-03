@@ -1692,6 +1692,81 @@
                 "0xCAFF": "0x70",
                 "0xCB00": "0x71"
             }
+        },
+        {
+            "opcode": "0xC5",
+            "startingState": {
+                "regs": {
+                    "SP": "0xCAFE",
+                    "BC": "0xBEEF"
+                },
+                "mem": {
+                    "0xCAFC": "0x68",
+                    "0xCAFD": "0x69",
+                    "0xCAFE": "0x70"
+                },
+                "flags": "0000"
+            },
+            "sequence": "C5",
+            "cycles": 16,
+            "regs": {
+                "SP": "0xCAFC",
+                "BC": "0xBEEF"
+            },
+            "mem": {
+                "0xCAFC": "0xEF",
+                "0xCAFD": "0xBE",
+                "0xCAFE": "0x70"
+            },
+            "flags": "UUUU"
+        },
+        {
+            "opcode": "0xF5",
+            "startingState": {
+                "regs": {
+                    "SP": "0xCAFE",
+                    "A": "0xBE"
+                },
+                "mem": {
+                    "0xCAFC": "0x68",
+                    "0xCAFD": "0x69",
+                    "0xCAFE": "0x70"
+                },
+                "flags": "1110"
+            },
+            "sequence": "F5",
+            "cycles": 16,
+            "regs": {
+                "SP": "0xCAFC",
+                "A": "0xBE"
+            },
+            "mem": {
+                "0xCAFC": "0xE0",
+                "0xCAFD": "0xBE",
+                "0xCAFE": "0x70"
+            },
+            "flags": "1110"
+        },
+        {
+            "opcode": "0xC0",
+            "startingState": {
+                "regs": {
+                    "SP": "0xBABE"
+                },
+                "mem": {
+                    "0xBABE": "0x69",
+                    "0xBABF": "0x70",
+                    "0xBAC0": "0x71"
+                },
+                "flags": "0111"
+            },
+            "sequence": "C0",
+            "cycles": 20,
+            "regs": {
+                "SP": "0xBAC0",
+                "PC": "0x7069"
+            },
+            "flags": "0111"
         }
     ]
 }

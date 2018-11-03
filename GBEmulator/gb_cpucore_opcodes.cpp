@@ -2113,6 +2113,64 @@ void CPUCore::initOpcodes()
 		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
 	};
 
+	// RET Section
+
+	// RET NZ
+	d_opcodes[0xC0] = [this]()
+	{
+		if (!d_regs->flagZero())
+		{
+			// Will call actual RET opcode
+			OpResult res = d_opcodes[0xC9]();
+
+			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+		}
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// RET NC
+	d_opcodes[0xD0] = [this]()
+	{
+		if (!d_regs->flagCarry())
+		{
+			OpResult res = d_opcodes[0xC9]();
+			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+		}
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// RET Z
+	d_opcodes[0xC8] = [this]()
+	{
+		if (d_regs->flagZero())
+		{
+			OpResult res = d_opcodes[0xC9]();
+			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+		}
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+	// RET C
+	d_opcodes[0xD8] = [this]()
+	{
+		if (d_regs->flagCarry())
+		{
+			OpResult res = d_opcodes[0xC9]();
+			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+		}
+		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+	};
+
+
+	// RET
+	d_opcodes[0xC9] = [this]()
+	{
+		// POP SP onto our PC
+		popSP(*d_regs, *d_ram, [this](WordType t) { d_regs->PC(t); });
+
+		return make_tuple(PC_INC_BYPASS, CYCLE_UNTAKEN);
+	}; 
+
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes
 	

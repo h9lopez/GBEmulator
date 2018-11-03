@@ -40,6 +40,8 @@ typedef std::tuple<WordType, CycleAction> OpResult;
 
 // The normal amount to increment PC by after each instruction
 static const WordType PC_INC_NORMAL = 1;
+// Used in instances where we manually set the PC and don't want it overridden when we return
+static const WordType PC_INC_BYPASS = 0;
 
 
 
