@@ -3,7 +3,8 @@
 
 #include "gb_typeutils.h"
 #include "CPUCore.h"
-#include "ReverseOpcodeMap.h"
+#include "OpcodeResultContext.h"
+
 
 // This namespace will contain generic helper functions that don't modify any
 // register/cpu state
@@ -245,7 +246,7 @@ void CPUCore::initOpcodes()
 
 	// NO OP
 	d_opcodes[0x00] = [this]() { 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x00).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RLCA
@@ -259,7 +260,7 @@ void CPUCore::initOpcodes()
 		d_regs->flagSubtract(false);
 		d_regs->flagHalfCarry(false);
 		d_regs->A(helpers::circularRotateLeft(target));
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x07).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RLA
@@ -278,7 +279,7 @@ void CPUCore::initOpcodes()
 		d_regs->flagZero(false);
 		d_regs->flagSubtract(false);
 		d_regs->flagHalfCarry(false);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x17).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RRCA
@@ -292,7 +293,7 @@ void CPUCore::initOpcodes()
 		d_regs->flagHalfCarry(false);
 
 		d_regs->A(helpers::circularRotateRight(target));
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x0F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RRA
@@ -311,7 +312,7 @@ void CPUCore::initOpcodes()
 		d_regs->flagHalfCarry(false);
 		d_regs->flagSubtract(false);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x1F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (a16), SP
@@ -319,7 +320,7 @@ void CPUCore::initOpcodes()
 	{
 		// No flags affected
 		d_ram->writeWord( readNextTwoBytes(), d_regs->SP() );
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x08).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD HL, BC
@@ -327,28 +328,28 @@ void CPUCore::initOpcodes()
 	{
 		loadIntoHL(*d_regs, [this]() { return d_regs->BC(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x09).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD HL, DE
 	d_opcodes[0x19] = [this]()
 	{
 		loadIntoHL(*d_regs, [this]() { return d_regs->DE(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x19).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD HL, HL
 	d_opcodes[0x29] = [this]()
 	{
 		loadIntoHL(*d_regs, [this]() { return d_regs->HL(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x29).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD HL, SP
 	d_opcodes[0x39] = [this]()
 	{
 		loadIntoHL(*d_regs, [this]() { return d_regs->SP(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x39).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, (BC)
@@ -359,7 +360,8 @@ void CPUCore::initOpcodes()
 			[this]() { return d_ram->readByte( d_regs->BC() ); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x0A).ShortCycle().IncrementPCDefault().Build();
+
 	};
 
 	// LD A, (DE)
@@ -369,7 +371,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t); },
 			[this]() { return d_ram->readByte( d_regs->DE() ); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x1A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, (HL+) aka LDI A, (HL)
@@ -384,7 +386,7 @@ void CPUCore::initOpcodes()
 		// operation doesn't set any flags related to the increment
 		d_regs->HL( d_regs->HL() + 1 );
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x2A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, (HL-) aka LDD A, (HL)
@@ -399,7 +401,7 @@ void CPUCore::initOpcodes()
 		// operation doesn't set any flags related to the decrement
 		d_regs->HL(d_regs->HL() - 1);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x3A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// JR NZ, r8
@@ -408,11 +410,11 @@ void CPUCore::initOpcodes()
 		if (!d_regs->flagZero())
 		{
 			// Do jump
-			WordType incAmt = readNextByte();
-			return make_tuple(incAmt, CYCLE_TAKEN);
+			ByteType incAmt = readNextByte();
+			return OpcodeResultContext::Builder(0x20).LongCycle().IncrementPCBy(incAmt).Build();
 		}
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x20).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// JR NC, r8
@@ -420,18 +422,18 @@ void CPUCore::initOpcodes()
 	{
 		if (!d_regs->flagCarry())
 		{
-			WordType incAmt = readNextByte();
-			return make_tuple(incAmt, CYCLE_TAKEN);
+			ByteType incAmt = readNextByte();
+			return OpcodeResultContext::Builder(0x30).LongCycle().IncrementPCBy(incAmt).Build();
 		}
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x30).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// JR r8
 	d_opcodes[0x18] = [this]()
 	{
-		WordType incAmt = readNextByte();
-		return make_tuple(incAmt, CYCLE_TAKEN);
+		ByteType incAmt = readNextByte();
+		return OpcodeResultContext::Builder(0x18).LongCycle().IncrementPCBy(incAmt).Build();
 	};
 
 	// JR Z, r8
@@ -439,10 +441,10 @@ void CPUCore::initOpcodes()
 	{
 		if (d_regs->flagZero())
 		{
-			WordType incAmt = readNextByte();
-			return make_tuple(incAmt, CYCLE_TAKEN);
+			ByteType incAmt = readNextByte();
+			return OpcodeResultContext::Builder(0x28).LongCycle().IncrementPCBy(incAmt).Build();
 		}
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x28).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// JR C, r8
@@ -450,46 +452,46 @@ void CPUCore::initOpcodes()
 	{
 		if (d_regs->flagCarry())
 		{
-			WordType incAmt = readNextByte();
-			return make_tuple(incAmt, CYCLE_TAKEN);
+			ByteType incAmt = readNextByte();
+			return OpcodeResultContext::Builder(0x38).LongCycle().IncrementPCBy(incAmt).Build();
 		}
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x38).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ======================== 16bit immediate load -> 16bit regs
 	d_opcodes[0x01] = [this]() { 
 		d_regs->BC(readNextTwoBytes()); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x01).ShortCycle().IncrementPCDefault().Build();
 	};
 	d_opcodes[0x11] = [this]() { 
 		d_regs->DE(readNextTwoBytes()); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x11).ShortCycle().IncrementPCDefault().Build();
 	};
 	d_opcodes[0x21] = [this]() { 
 		d_regs->HL(readNextTwoBytes()); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x21).ShortCycle().IncrementPCDefault().Build();
 	};
 	d_opcodes[0x31] = [this]() { 
 		d_regs->SP(readNextTwoBytes()); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x31).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// INC Increments
 	d_opcodes[0x03] = [this]() { 
 		d_regs->BC(d_regs->BC() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x03).ShortCycle().IncrementPCDefault().Build();
 	};
 	d_opcodes[0x13] = [this]() { 
 		d_regs->DE(d_regs->DE() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x13).ShortCycle().IncrementPCDefault().Build();
 	};
 	d_opcodes[0x23] = [this]() { 
 		d_regs->HL(d_regs->HL() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x23).ShortCycle().IncrementPCDefault().Build();
 	};
 	d_opcodes[0x33] = [this]() { 
 		d_regs->SP(d_regs->SP() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x33).ShortCycle().IncrementPCDefault().Build();
 	};
 	// individual regs
 
@@ -500,7 +502,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t); },
 			[this]() { return d_regs->B(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x04).ShortCycle().IncrementPCDefault().Build();
 	};
 	
 	// INC D
@@ -509,7 +511,7 @@ void CPUCore::initOpcodes()
 		incrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->D(t); },
 			[this]() { return d_regs->D(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x14).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// INC H
@@ -518,7 +520,7 @@ void CPUCore::initOpcodes()
 		incrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->H(t); },
 			[this]() { return d_regs->H(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x24).ShortCycle().IncrementPCDefault().Build();
 	};
 	
 	// INC (HL)
@@ -527,7 +529,7 @@ void CPUCore::initOpcodes()
 		incrementRegister(*d_regs,
 			[this](ByteType t) { d_ram->writeByte(d_regs->HL(), t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x34).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// INC C
@@ -536,7 +538,7 @@ void CPUCore::initOpcodes()
 		incrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->C(t); },
 			[this]() { return d_regs->C(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x0C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// INC E
@@ -545,7 +547,7 @@ void CPUCore::initOpcodes()
 		incrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->E(t); },
 			[this]() { return d_regs->E(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x1C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// INC L
@@ -554,7 +556,7 @@ void CPUCore::initOpcodes()
 		incrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->L(t); },
 			[this]() { return d_regs->L(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x2C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// INC A
@@ -563,7 +565,7 @@ void CPUCore::initOpcodes()
 		incrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->A(t); },
 			[this]() { return d_regs->A(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x3C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// DEC instructions
@@ -574,7 +576,7 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->B(t); },
 			[this]() { return d_regs->B(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x05).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// DEC D
@@ -583,7 +585,7 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->D(t); },
 			[this]() { return d_regs->D(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x15).ShortCycle().IncrementPCDefault().Build();
 	};
 	
 	// DEC H
@@ -592,7 +594,7 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->H(t); },
 			[this]() { return d_regs->H(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x25).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// DEC (HL)
@@ -601,7 +603,7 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_ram->writeByte(d_regs->HL(), t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x35).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// DEC C
@@ -610,7 +612,7 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->C(t); },
 			[this]() { return d_regs->C(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x0D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// DEC E
@@ -619,7 +621,7 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->E(t); },
 			[this]() { return d_regs->E(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x1D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// DEC L
@@ -628,7 +630,7 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->L(t); },
 			[this]() { return d_regs->L(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x2D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// DEC A
@@ -637,29 +639,29 @@ void CPUCore::initOpcodes()
 		decrementRegister(*d_regs,
 			[this](ByteType t) { d_regs->A(t); },
 			[this]() { return d_regs->A(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x3D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// 16-bit decrements
 	// DEC BC
 	d_opcodes[0x0B] = [this]() { 
 		d_regs->BC(d_regs->BC() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x0B).ShortCycle().IncrementPCDefault().Build();
 	};
 	// DEC DE
 	d_opcodes[0x1B] = [this]() { 
 		d_regs->DE(d_regs->DE() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x1B).ShortCycle().IncrementPCDefault().Build();
 	};
 	// DEC HL
 	d_opcodes[0x2B] = [this]() { 
 		d_regs->HL(d_regs->HL() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x2B).ShortCycle().IncrementPCDefault().Build();
 	};
 	// DEC SP
 	d_opcodes[0x3B] = [this]() { 
 		d_regs->SP(d_regs->SP() + 1); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x3B).ShortCycle().IncrementPCDefault().Build();
 	};
 
 
@@ -670,7 +672,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_regs->B(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA8).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// XOR C
@@ -678,7 +680,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_regs->C(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA9).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// XOR D
@@ -686,7 +688,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_regs->D(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xAA).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// XOR E
@@ -694,7 +696,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_regs->E(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xAB).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// XOR H
@@ -702,7 +704,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_regs->H(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xAC).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// XOR L
@@ -710,7 +712,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_regs->L(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xAD).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// XOR (HL)
@@ -718,7 +720,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_ram->readByte(d_regs->HL()); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xAE).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// XOR A
@@ -726,7 +728,7 @@ void CPUCore::initOpcodes()
 	{
 		xorRegister(*d_regs,
 			[this]() { return d_regs->A(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xAF).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (16b), A
@@ -735,14 +737,14 @@ void CPUCore::initOpcodes()
 	d_opcodes[0x02] = [this]()
 	{
 		d_ram->writeByte(d_regs->BC(), d_regs->A());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x02).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (DE), A
 	d_opcodes[0x12] = [this]()
 	{
 		d_ram->writeByte(d_regs->DE(), d_regs->A());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x12).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL+), A
@@ -750,7 +752,7 @@ void CPUCore::initOpcodes()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->A());
 		d_regs->HL( d_regs->HL() + 1 );
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x22).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL-), A
@@ -758,7 +760,7 @@ void CPUCore::initOpcodes()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->A());
 		d_regs->HL( d_regs->HL() - 1 );
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x32).ShortCycle().IncrementPCDefault().Build();
 	};
 
 
@@ -768,56 +770,56 @@ void CPUCore::initOpcodes()
 	d_opcodes[0x06] = [this]()
 	{
 		d_regs->B(readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x06).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D, d8
 	d_opcodes[0x16] = [this]()
 	{
 		d_regs->D(readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x16).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H, d8
 	d_opcodes[0x26] = [this]()
 	{
 		d_regs->H(readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x26).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), d8
 	d_opcodes[0x36] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x36).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, d8
 	d_opcodes[0x0E] = [this]()
 	{
 		d_regs->C(readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x0E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, d8
 	d_opcodes[0x1E] = [this]()
 	{
 		d_regs->E(readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x1E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, d8
 	d_opcodes[0x2E] = [this]()
 	{
 		d_regs->L(readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x2E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, d8
 	d_opcodes[0x3E] = [this]()
 	{
 		d_regs->A(readNextByte());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x3E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// IO Port Read/Write Instructions
@@ -826,21 +828,21 @@ void CPUCore::initOpcodes()
 	d_opcodes[0xE2] = [this]()
 	{
 		d_ram->writeByte(0xFF00 + d_regs->C(), d_regs->A());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xE2).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, ($FF00+C)
 	d_opcodes[0xF2] = [this]()
 	{
 		d_regs->A(d_ram->readByte(0xFF00 + d_regs->C()));
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xF2).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// HALT
 	d_opcodes[0x76] = [this]()
 	{
 		// TODO: Decide whether to use exception or return status
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x76).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CPL
@@ -849,7 +851,7 @@ void CPUCore::initOpcodes()
 		d_regs->A( ~d_regs->A() );
 		d_regs->flagSubtract(true);
 		d_regs->flagHalfCarry(true);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x2F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CCF
@@ -858,7 +860,7 @@ void CPUCore::initOpcodes()
 		d_regs->flagCarry( !(d_regs->flagCarry()) );
 		d_regs->flagSubtract(false);
 		d_regs->flagHalfCarry(false);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x3F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SCF
@@ -867,7 +869,7 @@ void CPUCore::initOpcodes()
 		d_regs->flagCarry(true);
 		d_regs->flagSubtract(false);
 		d_regs->flagHalfCarry(false);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x37).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B,B
@@ -877,7 +879,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t);  },
 			[this]() { return d_regs->B(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x40).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B,C
@@ -887,7 +889,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t);  },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x41).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B,D
@@ -897,7 +899,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t);  },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x42).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B,E
@@ -907,7 +909,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t);  },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x43).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B,H
@@ -917,7 +919,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t);  },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x44).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B,L
@@ -927,7 +929,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t);  },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x45).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B,A
@@ -937,7 +939,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t);  },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x47).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, B
@@ -947,7 +949,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t);  },
 			[this]() { return d_regs->B(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x48).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, C
@@ -957,7 +959,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t);  },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x49).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, D
@@ -967,7 +969,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t);  },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, E
@@ -977,7 +979,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t);  },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4B).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, H
@@ -987,7 +989,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t);  },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, L
@@ -997,7 +999,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t);  },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, A
@@ -1007,7 +1009,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t);  },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 
@@ -1018,7 +1020,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t);  },
 			[this]() { return d_regs->B(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x50).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D,C
@@ -1028,7 +1030,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t);  },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x51).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D,D
@@ -1038,7 +1040,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t);  },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x52).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D,E
@@ -1048,7 +1050,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t);  },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x53).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D,H
@@ -1058,7 +1060,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t);  },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x54).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D,L
@@ -1068,7 +1070,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t);  },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x55).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D,A
@@ -1078,7 +1080,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t);  },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x57).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	
@@ -1089,7 +1091,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t);  },
 			[this]() { return d_regs->B(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x58).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, C
@@ -1099,7 +1101,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t);  },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x59).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, D
@@ -1109,7 +1111,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t);  },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, E
@@ -1119,7 +1121,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t);  },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5B).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, H
@@ -1129,7 +1131,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t);  },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, L
@@ -1139,7 +1141,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t);  },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, A
@@ -1149,7 +1151,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t);  },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H,B
@@ -1159,7 +1161,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t);  },
 			[this]() { return d_regs->B(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x60).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H,C
@@ -1169,7 +1171,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t);  },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x61).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H,D
@@ -1179,7 +1181,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t);  },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x62).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H,E
@@ -1189,7 +1191,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t);  },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x63).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H,H
@@ -1199,7 +1201,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t);  },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x64).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H,L
@@ -1209,7 +1211,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t);  },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x65).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H,A
@@ -1219,7 +1221,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t);  },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x67).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, B
@@ -1229,7 +1231,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t);  },
 			[this]() { return d_regs->B(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x68).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, C
@@ -1239,7 +1241,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t);  },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x69).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, D
@@ -1249,7 +1251,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t);  },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, E
@@ -1259,7 +1261,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t);  },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6B).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, H
@@ -1269,7 +1271,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t);  },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, L
@@ -1279,7 +1281,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t);  },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, A
@@ -1289,7 +1291,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t);  },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	
@@ -1300,7 +1302,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t);  },
 			[this]() { return d_regs->B(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x78).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, C
@@ -1310,7 +1312,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t);  },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x79).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, D
@@ -1320,7 +1322,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t);  },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, E
@@ -1330,7 +1332,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t);  },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7B).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, H
@@ -1340,7 +1342,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t);  },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, L
@@ -1350,7 +1352,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t);  },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, A
@@ -1360,7 +1362,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t);  },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD B, (HL)
@@ -1370,7 +1372,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->B(t); },
 			[this]() { return d_ram->readByte( d_regs->HL() ); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x46).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD C, (HL)
@@ -1380,7 +1382,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->C(t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD D, (HL)
@@ -1390,7 +1392,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->D(t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x56).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD E, (HL)
@@ -1400,7 +1402,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->E(t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD H, (HL)
@@ -1410,7 +1412,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->H(t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x66).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD L, (HL)
@@ -1420,7 +1422,7 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->L(t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD A, (HL)
@@ -1430,49 +1432,49 @@ void CPUCore::initOpcodes()
 			[this](ByteType t) { d_regs->A(t); },
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), B
 	d_opcodes[0x70] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->B());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x70).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), C
 	d_opcodes[0x71] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->C());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x71).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), D
 	d_opcodes[0x72] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->D());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x72).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), E
 	d_opcodes[0x73] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->E());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x73).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), H
 	d_opcodes[0x74] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->H());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x74).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), L
 	d_opcodes[0x75] = [this]()
 	{
 		d_ram->writeByte(d_regs->HL(), d_regs->L());
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x75).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD REG, REG SECTION
@@ -1487,7 +1489,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->B(); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x80).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD A, C
@@ -1500,7 +1502,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->C(); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x81).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD A, D
@@ -1513,7 +1515,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->D(); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x82).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD A, E
@@ -1526,7 +1528,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->E(); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x83).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD A, H
@@ -1539,7 +1541,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->H(); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x84).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD A, L
@@ -1552,7 +1554,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->L(); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x85).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD A, (HL)
@@ -1565,7 +1567,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x86).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADD A, A
@@ -1578,7 +1580,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); }
 		);
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x87).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,B
@@ -1598,7 +1600,7 @@ void CPUCore::initOpcodes()
 		//	[this]() { return d_regs->flagCarry() ? 1 : 0; });
 
 		performADC(*d_regs, [this]() { return d_regs->B(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x88).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,C
@@ -1606,49 +1608,49 @@ void CPUCore::initOpcodes()
 	{
 		performADC(*d_regs, [this]() { return d_regs->C(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x89).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,D
 	d_opcodes[0x8A] = [this]()
 	{
 		performADC(*d_regs, [this]() {return d_regs->D(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x8A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,E
 	d_opcodes[0x8B] = [this]()
 	{
 		performADC(*d_regs, [this]() {return d_regs->E(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x8B).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,H
 	d_opcodes[0x8C] = [this]()
 	{
 		performADC(*d_regs, [this]() {return d_regs->H(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x8C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,L
 	d_opcodes[0x8D] = [this]()
 	{
 		performADC(*d_regs, [this]() {return d_regs->L(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x8D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,(HL)
 	d_opcodes[0x8E] = [this]()
 	{
 		performADC(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x8E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,A
 	d_opcodes[0x8F] = [this]()
 	{
 		performADC(*d_regs, [this]() { return d_regs->A(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x8F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// ADC A,d8
@@ -1656,7 +1658,7 @@ void CPUCore::initOpcodes()
 	{
 		ByteType numLiteral = readNextByte();
 		performADC(*d_regs, [this, numLiteral]() { return numLiteral; });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xCE).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB B
@@ -1666,7 +1668,7 @@ void CPUCore::initOpcodes()
 								[this]() { return d_regs->A(); },
 								[this]() { return d_regs->B(); }
 			);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x90).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB C
@@ -1676,7 +1678,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); },
 			[this]() { return d_regs->C(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x91).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB D
@@ -1686,7 +1688,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); },
 			[this]() { return d_regs->D(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x92).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB E
@@ -1696,7 +1698,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); },
 			[this]() { return d_regs->E(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x93).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB H
@@ -1706,7 +1708,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); },
 			[this]() { return d_regs->H(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x94).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB L
@@ -1716,7 +1718,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); },
 			[this]() { return d_regs->L(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x95).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB (HL)
@@ -1728,7 +1730,7 @@ void CPUCore::initOpcodes()
 								[this]() { return d_regs->A(); },
 								[this]() { return d_ram->readByte( d_regs->HL() ); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x96).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB A
@@ -1738,7 +1740,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); },
 			[this]() { return d_regs->A(); }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x97).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SUB (d8)
@@ -1750,7 +1752,7 @@ void CPUCore::initOpcodes()
 			[this]() { return d_regs->A(); },
 			[this, numLiteral]() { return numLiteral; }
 		);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xD6).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,B
@@ -1758,7 +1760,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_regs->B(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x98).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,C
@@ -1766,7 +1768,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_regs->C(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x99).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,D
@@ -1774,7 +1776,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_regs->D(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x9A).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,E
@@ -1782,7 +1784,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_regs->E(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x9B).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,H
@@ -1790,7 +1792,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_regs->H(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x9C).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,L
@@ -1798,7 +1800,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_regs->L(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x9D).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,(HL)
@@ -1806,7 +1808,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_ram->readByte( d_regs->HL() ); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x9E).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,A
@@ -1814,7 +1816,7 @@ void CPUCore::initOpcodes()
 	{
 		performSBC(*d_regs, [this]() { return d_regs->A(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x9F).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// SBC A,d8
@@ -1823,7 +1825,7 @@ void CPUCore::initOpcodes()
 		ByteType numLiteral = readNextByte();
 		performSBC(*d_regs, [this, numLiteral]() { return numLiteral; });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xDE).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND B
@@ -1831,7 +1833,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_regs->B(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA0).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND C
@@ -1839,7 +1841,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_regs->C(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA1).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND D
@@ -1847,7 +1849,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_regs->D(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA2).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND E
@@ -1855,7 +1857,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_regs->E(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA3).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND H
@@ -1863,7 +1865,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_regs->H(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA4).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND L
@@ -1871,7 +1873,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_regs->L(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA5).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND (HL)
@@ -1879,7 +1881,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA6).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND A
@@ -1887,7 +1889,7 @@ void CPUCore::initOpcodes()
 	{
 		performAND(*d_regs, [this]() { return d_regs->A(); });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xA7).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// AND d8
@@ -1896,63 +1898,63 @@ void CPUCore::initOpcodes()
 		ByteType numLiteral = readNextByte();
 		performAND(*d_regs, [this, numLiteral]() { return numLiteral; });
 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xE6).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR B
 	d_opcodes[0xB0] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_regs->B(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB0).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR C
 	d_opcodes[0xB1] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_regs->C(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB1).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR D
 	d_opcodes[0xB2] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_regs->D(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB2).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR E
 	d_opcodes[0xB3] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_regs->E(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB3).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR H
 	d_opcodes[0xB4] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_regs->H(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB4).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR L
 	d_opcodes[0xB5] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_regs->L(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB5).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR (HL)
 	d_opcodes[0xB6] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_ram->readByte(d_regs->HL()); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB6).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR A
 	d_opcodes[0xB7] = [this]()
 	{
 		performOR(*d_regs, [this]() {return d_regs->A(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB7).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// OR d8
@@ -1960,7 +1962,7 @@ void CPUCore::initOpcodes()
 	{
 		ByteType numLiteral = readNextByte();
 		performOR(*d_regs, [this, numLiteral]() {return numLiteral; });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xF6).ShortCycle().IncrementPCDefault().Build();
 	};
 
 
@@ -1972,7 +1974,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x90]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB8).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP C
@@ -1982,7 +1984,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x91]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xB9).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP D
@@ -1992,7 +1994,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x92]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xBA).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP E
@@ -2002,7 +2004,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x93]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xBB).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP H
@@ -2012,7 +2014,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x94]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xBC).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP L
@@ -2022,7 +2024,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x95]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xBD).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP (HL)
@@ -2032,7 +2034,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x96]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xBE).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP A
@@ -2042,7 +2044,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0x97]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xBF).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CP d8
@@ -2052,7 +2054,7 @@ void CPUCore::initOpcodes()
 		ByteType previousRegVal = d_regs->A();
 		d_opcodes[0xD6]();
 		d_regs->A(previousRegVal);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xFE).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// Stack Pointer Operations
@@ -2061,56 +2063,56 @@ void CPUCore::initOpcodes()
 	d_opcodes[0xC1] = [this]()
 	{
 		popSP(*d_regs, *d_ram, [this](WordType t) { d_regs->BC(t); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xC1).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// POP DE
 	d_opcodes[0xD1] = [this]()
 	{
 		popSP(*d_regs, *d_ram, [this](WordType t) { d_regs->DE(t); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xD1).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// POP HL
 	d_opcodes[0xE1] = [this]()
 	{
 		popSP(*d_regs, *d_ram, [this](WordType t) { d_regs->HL(t); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xE1).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// POP AF
 	d_opcodes[0xF1] = [this]()
 	{
 		popSP(*d_regs, *d_ram, [this](WordType t) { d_regs->AF(t); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xF1).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// PUSH BC
 	d_opcodes[0xC5] = [this]()
 	{
 		pushSP(*d_regs, *d_ram, [this]() { return d_regs->BC(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xC5).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// PUSH DE
 	d_opcodes[0xD5] = [this]()
 	{
 		pushSP(*d_regs, *d_ram, [this]() { return d_regs->DE(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xD5).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// PUSH HL
 	d_opcodes[0xE5] = [this]()
 	{
 		pushSP(*d_regs, *d_ram, [this]() { return d_regs->HL(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xE5).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// PUSH AF
 	d_opcodes[0xF5] = [this]()
 	{
 		pushSP(*d_regs, *d_ram, [this]() { return d_regs->AF(); });
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xF5).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RET Section
@@ -2121,11 +2123,11 @@ void CPUCore::initOpcodes()
 		if (!d_regs->flagZero())
 		{
 			// Will call actual RET opcode
-			OpResult res = d_opcodes[0xC9]();
-
-			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+			d_opcodes[0xC9]();
+			
+			return OpcodeResultContext::Builder(0xC0).LongCycle().FreezePC().Build();
 		}
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xC0).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RET NC
@@ -2133,10 +2135,10 @@ void CPUCore::initOpcodes()
 	{
 		if (!d_regs->flagCarry())
 		{
-			OpResult res = d_opcodes[0xC9]();
-			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+			d_opcodes[0xC9]();
+			return OpcodeResultContext::Builder(0xD0).LongCycle().FreezePC().Build();
 		}
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xD0).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RET Z
@@ -2144,10 +2146,10 @@ void CPUCore::initOpcodes()
 	{
 		if (d_regs->flagZero())
 		{
-			OpResult res = d_opcodes[0xC9]();
-			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+			d_opcodes[0xC9]();
+			return OpcodeResultContext::Builder(0xC8).LongCycle().FreezePC().Build();
 		}
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xC8).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// RET C
@@ -2155,10 +2157,10 @@ void CPUCore::initOpcodes()
 	{
 		if (d_regs->flagCarry())
 		{
-			OpResult res = d_opcodes[0xC9]();
-			return make_tuple(std::get<0>(res), CYCLE_TAKEN);
+			d_opcodes[0xC9]();
+			return OpcodeResultContext::Builder(0xD8).LongCycle().FreezePC().Build();
 		}
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xD8).ShortCycle().IncrementPCDefault().Build();
 	};
 
 
@@ -2168,7 +2170,7 @@ void CPUCore::initOpcodes()
 		// POP SP onto our PC
 		popSP(*d_regs, *d_ram, [this](WordType t) { d_regs->PC(t); });
 
-		return make_tuple(PC_INC_BYPASS, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0xC9).ShortCycle().FreezePC().Build();
 	}; 
 
 	// =============== CB Opcode Section
@@ -2177,343 +2179,343 @@ void CPUCore::initOpcodes()
 	// BIT 0, B
 	d_cbOpcodes[0x40] = [this]() { 
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 0); 
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN); 
+		return OpcodeResultContext::Builder(0x40).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 	// 0x41 - BIT 0, C
 	d_cbOpcodes[0x41] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 0);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x41).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 	// 0x42 - BIT 0, D
 	d_cbOpcodes[0x42] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 0);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x42).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 	// 0x43 - BIT 0, E
 	d_cbOpcodes[0x43] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 0);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x43).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 	// 0x44 - BIT 0, H
 	d_cbOpcodes[0x44] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 0);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x44).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 	// 0x45 - BIT 0, L
 	d_cbOpcodes[0x45] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 0);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x45).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 	// 0x46 - BIT 0, (HL)
 	d_cbOpcodes[0x46] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 0);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x46).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x47 - BIT 0, A
 	d_cbOpcodes[0x47] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 0);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x47).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 
 	// 0x48 - BIT 1, B
 	d_cbOpcodes[0x48] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x48).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 	// 0x49 - BIT 1, C
 	d_cbOpcodes[0x49] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x49).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x4A - BIT 1, D
 	d_cbOpcodes[0x4A] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4A).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x4B - BIT 1, E
 	d_cbOpcodes[0x4B] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4B).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x4C - BIT 1, H
 	d_cbOpcodes[0x4C] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4C).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x4D - BIT 1, L
 	d_cbOpcodes[0x4D] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4D).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x4E - BIT 1, (HL)
 	d_cbOpcodes[0x4E] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4E).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x4F - BIT 1, A
 	d_cbOpcodes[0x4F] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 1);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x4F).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 
 	// 0x50 - BIT 2, B
 	d_cbOpcodes[0x50] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x50).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x51 - BIT 2, C
 	d_cbOpcodes[0x51] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x51).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x52 - BIT 2, D
 	d_cbOpcodes[0x52] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x52).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x53 - BIT 2, E
 	d_cbOpcodes[0x53] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x53).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x54 - BIT 2, H
 	d_cbOpcodes[0x54] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x54).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x55 - BIT 2, L
 	d_cbOpcodes[0x55] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x55).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x56 - BIT 2, (HL)
 	d_cbOpcodes[0x56] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x56).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x57 - BIT 2, A
 	d_cbOpcodes[0x57] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 2);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x57).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 
 	// 0x58 - BIT 3, B
 	d_cbOpcodes[0x58] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x58).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x59 - BIT 3, C
 	d_cbOpcodes[0x59] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x59).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x5A - BIT 3, D
 	d_cbOpcodes[0x5A] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5A).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x5B - BIT 3, E
 	d_cbOpcodes[0x5B] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5B).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x5C - BIT 3, H
 	d_cbOpcodes[0x5C] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5C).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x5D - BIT 3, L
 	d_cbOpcodes[0x5D] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5D).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x5E - BIT 3, (HL)
 	d_cbOpcodes[0x5E] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5E).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x5F - BIT 3, A
 	d_cbOpcodes[0x5F] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 3);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x5F).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 
 	// 0x60 - BIT 4, B
 	d_cbOpcodes[0x60] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x60).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x61 - BIT 4, C
 	d_cbOpcodes[0x61] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x61).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x62 - BIT 4, D
 	d_cbOpcodes[0x62] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x62).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x63 - BIT 4, E
 	d_cbOpcodes[0x63] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x63).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x64 - BIT 4, H
 	d_cbOpcodes[0x64] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x64).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x65 - BIT 4, L
 	d_cbOpcodes[0x65] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x65).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x66 - BIT 4, (HL)
 	d_cbOpcodes[0x66] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x66).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x67 - BIT 4, A
 	d_cbOpcodes[0x67] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 4);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x67).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 
 	// 0x68 - BIT 5, B
 	d_cbOpcodes[0x68] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x68).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x69 - BIT 5, C
 	d_cbOpcodes[0x69] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x69).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x6A - BIT 5, D
 	d_cbOpcodes[0x6A] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6A).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x6B - BIT 5, E
 	d_cbOpcodes[0x6B] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6B).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x6C - BIT 5, H
 	d_cbOpcodes[0x6C] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6C).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x6D - BIT 5, L
 	d_cbOpcodes[0x6D] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6D).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x6E - BIT 5, (HL)
 	d_cbOpcodes[0x6E] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6E).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x6F - BIT 5, A
 	d_cbOpcodes[0x6F] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 5);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x6F).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 
 	// 0x70 - BIT 6, B
 	d_cbOpcodes[0x70] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x70).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x71 - BIT 6, C
 	d_cbOpcodes[0x71] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x71).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x72 - BIT 6, D
 	d_cbOpcodes[0x72] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x72).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x73 - BIT 6, E
 	d_cbOpcodes[0x73] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x73).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x74 - BIT 6, H
 	d_cbOpcodes[0x74] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x74).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x75 - BIT 6, L
 	d_cbOpcodes[0x75] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x75).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x76 - BIT 6, (HL)
 	d_cbOpcodes[0x76] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x76).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x77 - BIT 6, A
 	d_cbOpcodes[0x77] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 6);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x77).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 
 	// 0x78 - BIT 7, B
 	d_cbOpcodes[0x78] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->B(); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x78).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x79 - BIT 7, C
 	d_cbOpcodes[0x79] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->C(); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x79).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x7A - BIT 7, D
 	d_cbOpcodes[0x7A] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->D(); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7A).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x7B - BIT 7, E
 	d_cbOpcodes[0x7B] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->E(); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7B).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x7C - BIT 7, H
 	d_cbOpcodes[0x7C] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7C).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x7D - BIT 7, L
 	d_cbOpcodes[0x7D] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->L(); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7D).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x7E - BIT 7, (HL)
 	d_cbOpcodes[0x7E] = [this]() {
 		checkBit(*d_regs, [this]() { return d_ram->readByte(d_regs->HL()); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7E).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x7F - BIT 7, A
 	d_cbOpcodes[0x7F] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->A(); }, 7);
-		return make_tuple(PC_INC_NORMAL, CYCLE_UNTAKEN);
+		return OpcodeResultContext::Builder(0x7F).ShortCycle().IncrementPCDefault().Build();;
 	};
 
 

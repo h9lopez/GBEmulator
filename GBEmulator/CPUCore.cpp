@@ -1,6 +1,7 @@
 #include "CPUCore.h"
 #include "gb_typeutils.h"
 #include "ReverseOpcodeMap.h"
+#include "OpcodeResultContext.h"
 #include <iostream>
 
 CPUCore::CPUCore(RAM& ram, RegBank& regs)
@@ -43,8 +44,6 @@ void CPUCore::cycle()
 	}
 
 	// Check whether or not its a single byte instr or double
-	WordType pcIncrement = 0;
-	CycleAction actionDone = CYCLE_TAKEN;
 	if (opcode == 0xCB)
 	{
 		// Two byte prefix
@@ -56,44 +55,20 @@ void CPUCore::cycle()
 		// PC increment is mostly static (usually length of opcode) except for JR/JP
 		// Cycles can vary based on whether a branch is taken or untaken (again, for JR/JP)
 		
-		std::tie(pcIncrement, actionDone) = d_cbOpcodes[opcode]();
+		OpcodeResultContext context = d_cbOpcodes[opcode]();
 
 		// The CB instruction by itself always takes up 4 cycles PLUS the actual operation on top
-		this->d_cycles += 4;
-		if (actionDone == CYCLE_TAKEN)
-		{
-			this->d_cycles += INSTR_CB_META[secondOpcode].cyclesTaken;
-		}
-		else if (actionDone == CYCLE_UNTAKEN)
-		{
-			this->d_cycles += INSTR_CB_META[secondOpcode].cyclesUntaken;
-		}
-		else {
-			std::cerr << "ERROR: Unknown action taken, not sure how to count cycles for op " 
-						<< secondOpcode << std::endl;
-		}
+		this->d_cycles += context.properties.cycles;
+		d_regs->PC(d_regs->PC() + context.properties.pcIncrement);
 	}
 	else 
 	{
 		std::cout << "OBSERVING: " << std::hex << (int)opcode << " - " << INSTR_META[opcode].name << '\n';
 
 		// One byte instruction
-		std::tie(pcIncrement, actionDone) = d_opcodes[opcode]();
+		OpcodeResultContext context = d_opcodes[opcode]();
 
-		if (actionDone == CYCLE_TAKEN)
-		{
-			this->d_cycles += INSTR_META[opcode].cyclesTaken;
-		}
-		else if (actionDone == CYCLE_UNTAKEN)
-		{
-			this->d_cycles += INSTR_META[opcode].cyclesUntaken;
-		}
-		else {
-			std::cerr << "ERROR: Unknown action taken, not sure how to count cycles for op " 
-						<< opcode << std::endl;
-		}
+		this->d_cycles += context.properties.cycles;
+		d_regs->PC(d_regs->PC() + context.properties.pcIncrement);
 	}
-
-	// Increment PC at the end
-	d_regs->PC(d_regs->PC() + pcIncrement);
 }

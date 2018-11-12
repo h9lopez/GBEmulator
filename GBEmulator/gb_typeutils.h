@@ -33,11 +33,6 @@ typedef enum {
     CYCLE_UNTAKEN
 } CycleAction;
 
-// Typedef for the return type of the opcode functions.
-// A tuple of the value of PC increment that should occur after
-// and the second value the number of cycles taken by the opcode
-typedef std::tuple<WordType, CycleAction> OpResult;
-
 // The normal amount to increment PC by after each instruction
 static const WordType PC_INC_NORMAL = 1;
 // Used in instances where we manually set the PC and don't want it overridden when we return

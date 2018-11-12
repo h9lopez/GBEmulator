@@ -124,6 +124,7 @@
     <ClCompile Include="gb_ram.cpp" />
     <ClCompile Include="gb_regs.cpp" />
     <ClCompile Include="gb_rom.cpp" />
+    <ClCompile Include="OpcodeResultContext.cpp" />
     <ClCompile Include="primary_loop.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -132,6 +133,7 @@
     <ClInclude Include="gb_regs.h" />
     <ClInclude Include="gb_rom.h" />
     <ClInclude Include="gb_typeutils.h" />
+    <ClInclude Include="OpcodeResultContext.h" />
     <ClInclude Include="ReverseOpcodeMap.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
