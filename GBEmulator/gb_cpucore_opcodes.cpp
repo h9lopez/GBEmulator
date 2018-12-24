@@ -234,6 +234,21 @@ namespace {
 		ram.writeByte(regs.SP() - 2, construct.lo);
 		regs.SP( regs.SP() - 2 );
 	}
+
+	void registerRst(RegBank &regs, RAM &ram, ByteType f_val)
+	{
+		// (SP-1) <- PCh, (SP-2) <- PCl, PCh <- 0, PCl <- f, SP <- SP-2
+		ram.writeByte(reg.SP() - 1, d_regs.PC().hi);
+		ram.writeByte(reg.SP() - 2, d_regs.PC().lo);
+		
+		// NOTE: An api here that could set the individual high/lo would be way better than reconstructing new thing
+		WordRegister newPC;
+		newPC.hi = 0;
+		newPC.lo = f_val;
+
+		regs.PC(newPD.word);
+		regs.SP( regs.SP() - 2 );
+	}
 }
 
 
@@ -1583,6 +1598,20 @@ void CPUCore::initOpcodes()
 		return OpcodeResultContext::Builder(0x87).ShortCycle().IncrementPCDefault().Build();
 	};
 
+	// ADD A, d8
+	d_opcodes[0xC6] = [this]()
+	{
+		ByteType constVal = readNextByte();
+		performByteAdd(
+			*d_regs,
+			[this](ByteType t) { d_regs-A(t); },
+			[this]() { return d_regs->A(); },
+			[this]() { return constVal; }
+		);
+
+		return OpcodeResultContext::Builder(0xC6).ShortCycle().IncrementPCDefault().Build();
+	};
+
 	// ADC A,B
 	d_opcodes[0x88] = [this]()
 	{
@@ -2172,6 +2201,82 @@ void CPUCore::initOpcodes()
 
 		return OpcodeResultContext::Builder(0xC9).ShortCycle().FreezePC().Build();
 	}; 
+
+	// JP Section
+	// JP NZ,a16
+	d_opcodes[0xC2] = [this]()
+	{
+		if (!d_regs->flagZero())
+		{
+			// Set PC to address read in
+			WordType jpAddr = readNextTwoBytes();
+			return OpcodeResultContext::Builder(0xC2).LongCycle().SetPCTo(jpAddr).Build();
+		}
+		return OpcodeResultContext::Builder(0xC2).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// JP NC,a16
+	d_opcodes[0xD2] = [this]()
+	{
+		if (!d_regs->flagCarry())
+		{
+			// Set PC to address read in
+			WordType jpAddr = readNextTwoBytes();
+			return OpcodeResultContext::Builder(0xD2).LongCycle().SetPCTo(jpAddr).Build();
+		}
+		return OpcodeResultContext::Builder(0xD2).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// JP a16
+	d_opcodes[0xC3] = [this]()
+	{
+		// Set PC to address read in
+		WordType jpAddr = readNextTwoBytes();
+		return OpcodeResultContext::Builder(0xC3).LongCycle().SetPCTo(jpAddr).Build();
+	};
+
+	// JP Z,a16
+	d_opcodes[0xCA] = [this]()
+	{
+		if (d_regs->flagZero())
+		{
+			// Set PC to address read in
+			WordType jpAddr = readNextTwoBytes();
+			return OpcodeResultContext::Builder(0xCA).LongCycle().SetPCTo(jpAddr).Build();
+		}
+		return OpcodeResultContext::Builder(0xCA).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// JP C,a16
+	d_opcodes[0xDA] = [this]()
+	{
+		if (d_regs->flagCarry())
+		{
+			// Set PC to address read in
+			WordType jpAddr = readNextTwoBytes();
+			return OpcodeResultContext::Builder(0xDA).LongCycle().SetPCTo(jpAddr).Build();
+		}
+		return OpcodeResultContext::Builder(0xDA).ShortCycle().IncrementPCDefault().Build();
+	};
+
+
+	// JP (HL)
+	d_opcodes[0xE9] = [this]()
+	{
+		if (!d_regs->flagZero())
+		{
+			// Set PC to address read in
+			WordType jpAddr = d_ram->readWord(d_regs->HL());
+			return OpcodeResultContext::Builder(0xE9).LongCycle().SetPCTo(jpAddr).Build();
+		}
+		return OpcodeResultContext::Builder(0xE9).ShortCycle().IncrementPCDefault().Build();
+	};
+
+
+	// RST Section
+	// (SP-1) <- PCh, (SP-2) <- PCl, PCh <- 0, PCl <- f, SP <- SP-2
+
+
 
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes
