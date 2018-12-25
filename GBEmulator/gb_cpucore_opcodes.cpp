@@ -249,6 +249,17 @@ namespace {
 		regs.PC(newPD.word);
 		regs.SP( regs.SP() - 2 );
 	}
+
+	void performCall(RegBank &regs, RAM &ram, WordType address)
+	{
+		// (SP-1) <- PCh, (SP-2) <- PCl, PC <- nn, SP <- SP-2
+		ram.writeByte(regs.SP() - 1, regs.PC().hi);
+		ram.writeByte(regs.SP() - 2, regs.PC().lo);
+
+		regs.PC(address);
+
+		regs.SP( regs.SP() - 2 );
+	}
 }
 
 
@@ -854,10 +865,17 @@ void CPUCore::initOpcodes()
 	};
 
 	// HALT
+	// TODO: This should wait until the next interrupt before starting again
 	d_opcodes[0x76] = [this]()
 	{
 		// TODO: Decide whether to use exception or return status
 		return OpcodeResultContext::Builder(0x76).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// STOP 0, cousin of HALT
+	d_opcodes[0x10] = [this]()
+	{
+		return OpcodeResultContext::Builder(0x10).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// CPL
@@ -2276,7 +2294,135 @@ void CPUCore::initOpcodes()
 	// RST Section
 	// (SP-1) <- PCh, (SP-2) <- PCl, PCh <- 0, PCl <- f, SP <- SP-2
 
+	// RST 00H
+	d_opcodes[0xC7] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x00);
+		return OpcodeResultContext::Builder(0xC7).ShortCycle().FreezePC().Build();
+	};
 
+	// RST 10H
+	d_opcodes[0xD7] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x10);
+		return OpcodeResultContext::Builder(0xD7).ShortCycle().FreezePC().Build();
+	};
+
+	// RST 20H
+	d_opcodes[0xE7] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x20);
+		return OpcodeResultContext::Builder(0xE7).ShortCycle().FreezePC().Build();
+	};
+
+	// RST 30H
+	d_opcodes[0xF7] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x30);
+		return OpcodeResultContext::Builder(0xF7).ShortCycle().FreezePC().Build();
+	};
+
+	// RST 08H
+	d_opcodes[0xCF] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x08);
+		return OpcodeResultContext::Builder(0xCF).ShortCycle().FreezePC().Build();
+	};
+
+	// RST 18H
+	d_opcodes[0xDF] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x18);
+		return OpcodeResultContext::Builder(0xDF).ShortCycle().FreezePC().Build();		
+	};
+
+	// RST 28H
+	d_opcodes[0xEF] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x28);
+		return OpcodeResultContext::Builder(0xEF).ShortCycle().FreezePC().Build();		
+	};
+
+	// RST 38H
+	d_opcodes[0xFF] = [this]()
+	{
+		registerRst(*d_regs, *d_ram, 0x38);
+		return OpcodeResultContext::Builder(0xFF).ShortCycle().FreezePC().Build();		
+	};
+
+	// CALL Section
+	
+	// CALL NZ,a16
+	d_opcodes[0xC4] = [this]()
+	{
+		if (!d_regs.flagZero())
+		{
+			WordType targetAddr = readNextTwoBytes();
+			performCall(*d_regs, *d_ram, targetAddr);
+			return OpcodeResultContext::Builder(0xC4).LongCycle().FreezePC().Build();
+		}
+		return OpcodeResultContext::Builder(0xC4).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// CALL NC,a16
+	d_opcodes[0xD4] = [this]()
+	{
+		if (!d_regs.flagCarry())
+		{
+			WordType targetAddr = readNextTwoBytes();
+			performCall(*d_regs, *d_ram, targetAddr);
+			return OpcodeResultContext::Builder(0xD4).LongCycle().FreezePC().Build();
+		}
+		return OpcodeResultContext::Builder(0xD4).ShortCycle().IncrementPCDefault().Build();		
+	};
+
+	// CALL Z,a16
+	d_opcodes[0xCC] = [this]()
+	{
+		if (d_regs.flagZero())
+		{
+			WordType targetAddr = readNextTwoBytes();
+			performCall(*d_regs, *d_ram, targetAddr);
+			return OpcodeResultContext::Builder(0xCC).LongCycle().FreezePC().Build();
+		}
+		return OpcodeResultContext::Builder(0xCC).ShortCycle().IncrementPCDefault().Build();		
+	};
+
+	// CALL C,a16
+	d_opcodes[0xDC] = [this]()
+	{
+		if (d_regs.flagCarry())
+		{
+			WordType targetAddr = readNextTwoBytes();
+			performCall(*d_regs, *d_ram, targetAddr);
+			return OpcodeResultContext::Builder(0xDC).LongCycle().FreezePC().Build();
+		}
+		return OpcodeResultContext::Builder(0xDC).ShortCycle().IncrementPCDefault().Build();		
+	};
+
+	// CALL a16
+	d_opcodes[0xCD] = [this]()
+	{
+		WordType targetAddr = readNextTwoBytes();
+		performCall(*d_regs, *d_ram, targetAddr);
+		return OpcodeResultContext::Builder(0xCD).LongCycle().FreezePC().Build();
+	};
+
+	// INTERRUPT Section
+	
+	// Disable Interrupts
+	// DI
+	// TODO: Return to this
+	d_opcodes[0xF3] = [this]()
+	{
+		// TODO: Throw custom runtime exception here to differentiate between standard runtime error
+		throw std::runtime_error("Opcode 0xF3 is unimplemented");
+	};
+
+	d_opcodes[0xFB] = [this]()
+	{
+		throw std::runtime_error("Opcode 0xFB is unimplemented");
+	};
 
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes
