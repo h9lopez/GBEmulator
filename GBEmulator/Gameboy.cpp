@@ -49,11 +49,11 @@ void Gameboy::beginExec()
 	// TODO: Add check to see if ROM was actually loaded
 	cout << "Beginning execution of loaded ROM" << endl;
 
-	this->cpu = new CPU(this->mem, GB_MEMSIZE);
+	/*this->cpu = new CPU(this->mem, GB_MEMSIZE);
 
 	for (;;)
 	{
 		this->cpu->cpu_cycle();
 	}
-
+	*/
 }

@@ -1,6 +1,5 @@
 #include <string>
 #include "Registers.h"
-#include "CPU.h"
 
 #pragma once
 
@@ -10,7 +9,7 @@
 class Gameboy
 {
 	uint8_t			mem[GB_MEMSIZE];
-	CPU				*cpu;
+	//CPU				*cpu;
 
 public:
 	Gameboy();

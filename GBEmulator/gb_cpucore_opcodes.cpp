@@ -238,23 +238,29 @@ namespace {
 	void registerRst(RegBank &regs, RAM &ram, ByteType f_val)
 	{
 		// (SP-1) <- PCh, (SP-2) <- PCl, PCh <- 0, PCl <- f, SP <- SP-2
-		ram.writeByte(reg.SP() - 1, d_regs.PC().hi);
-		ram.writeByte(reg.SP() - 2, d_regs.PC().lo);
+		WordRegister pcReg;
+		pcReg.word = regs.PC();
+
+		ram.writeByte(regs.SP() - 1, pcReg.hi);
+		ram.writeByte(regs.SP() - 2, pcReg.lo);
 		
 		// NOTE: An api here that could set the individual high/lo would be way better than reconstructing new thing
 		WordRegister newPC;
 		newPC.hi = 0;
 		newPC.lo = f_val;
 
-		regs.PC(newPD.word);
+		regs.PC(newPC.word);
 		regs.SP( regs.SP() - 2 );
 	}
 
 	void performCall(RegBank &regs, RAM &ram, WordType address)
 	{
 		// (SP-1) <- PCh, (SP-2) <- PCl, PC <- nn, SP <- SP-2
-		ram.writeByte(regs.SP() - 1, regs.PC().hi);
-		ram.writeByte(regs.SP() - 2, regs.PC().lo);
+		WordRegister pcReg;
+		pcReg.word = regs.PC();
+		
+		ram.writeByte(regs.SP() - 1, pcReg.hi);
+		ram.writeByte(regs.SP() - 2, pcReg.lo);
 
 		regs.PC(address);
 
@@ -755,6 +761,16 @@ void CPUCore::initOpcodes()
 		xorRegister(*d_regs,
 			[this]() { return d_regs->A(); });
 		return OpcodeResultContext::Builder(0xAF).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// XOR d8
+	d_opcodes[0xEE] = [this]()
+	{
+		ByteType val = readNextByte();
+		xorRegister(*d_regs,
+			[this,val]() { return val; }
+		);
+		return OpcodeResultContext::Builder(0xEE).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (16b), A
@@ -1622,9 +1638,9 @@ void CPUCore::initOpcodes()
 		ByteType constVal = readNextByte();
 		performByteAdd(
 			*d_regs,
-			[this](ByteType t) { d_regs-A(t); },
+			[this](ByteType t) { d_regs->A(t); },
 			[this]() { return d_regs->A(); },
-			[this]() { return constVal; }
+			[this, constVal]() { return constVal; }
 		);
 
 		return OpcodeResultContext::Builder(0xC6).ShortCycle().IncrementPCDefault().Build();
@@ -2355,7 +2371,7 @@ void CPUCore::initOpcodes()
 	// CALL NZ,a16
 	d_opcodes[0xC4] = [this]()
 	{
-		if (!d_regs.flagZero())
+		if (!d_regs->flagZero())
 		{
 			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
@@ -2367,7 +2383,7 @@ void CPUCore::initOpcodes()
 	// CALL NC,a16
 	d_opcodes[0xD4] = [this]()
 	{
-		if (!d_regs.flagCarry())
+		if (!d_regs->flagCarry())
 		{
 			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
@@ -2379,7 +2395,7 @@ void CPUCore::initOpcodes()
 	// CALL Z,a16
 	d_opcodes[0xCC] = [this]()
 	{
-		if (d_regs.flagZero())
+		if (d_regs->flagZero())
 		{
 			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
@@ -2391,7 +2407,7 @@ void CPUCore::initOpcodes()
 	// CALL C,a16
 	d_opcodes[0xDC] = [this]()
 	{
-		if (d_regs.flagCarry())
+		if (d_regs->flagCarry())
 		{
 			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
@@ -2417,11 +2433,35 @@ void CPUCore::initOpcodes()
 	{
 		// TODO: Throw custom runtime exception here to differentiate between standard runtime error
 		throw std::runtime_error("Opcode 0xF3 is unimplemented");
+		return OpcodeResultContext::Builder(0xF3).ShortCycle().FreezePC().Build();
 	};
 
 	d_opcodes[0xFB] = [this]()
 	{
 		throw std::runtime_error("Opcode 0xFB is unimplemented");
+		return OpcodeResultContext::Builder(0xF3).ShortCycle().FreezePC().Build();	
+	};
+
+	// LDH Section
+	
+	// LDH (a8), A
+	d_opcodes[0xE0] = [this]()
+	{
+		ByteType incByVal = readNextByte();
+		WordType memTargetAddr = 0xFF00 + incByVal;
+
+		d_ram->writeByte(memTargetAddr, d_regs->A());
+		return OpcodeResultContext::Builder(0xE0).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// LDH A, (a8)
+	d_opcodes[0xF0] = [this]()
+	{
+		ByteType incByVal = readNextByte();
+		WordType memTargetAddr = 0xFF00 + incByVal;
+		
+		d_regs->A( d_ram->readByte(memTargetAddr) );
+		return OpcodeResultContext::Builder(0xF0).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// =============== CB Opcode Section
