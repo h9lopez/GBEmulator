@@ -436,6 +436,51 @@ void CPUCore::initOpcodes()
 		return OpcodeResultContext::Builder(0x3A).ShortCycle().IncrementPCDefault().Build();
 	};
 
+	// LD HL,SP+r8
+	d_opcodes[0xF8] = [this]()
+	{
+		ByteType incVal = readNextByte();
+
+		// Detect carry and half carry
+		bool isHalfCarry = ((d_regs->SP() & 0xf) + (incVal & 0xf)) & 0x10;
+		unsigned int interimSum = static_cast<unsigned int>(d_regs->SP()) + 
+							  static_cast<unsigned int>(incVal);
+		bool isCarry = interimSum & 0x100;
+
+		// NOTE: This downcast should probably be tested
+		WordType loadVal = d_ram->readWord(static_cast<ByteType>(interimSum));
+
+		d_regs->HL(loadVal);
+
+		// Set flags
+		d_regs->flagZero(false);
+		d_regs->flagSubtract(false);
+		return OpcodeResultContext::Builder(0xF8).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// LD SP,HL
+	d_opcodes[0xF9] = [this]()
+	{
+		d_regs->SP(d_regs->HL());
+		return OpcodeResultContext::Builder(0xF9).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// LD (a16),A
+	d_opcodes[0xEA] = [this]()
+	{
+		WordType memAddr = readNextTwoBytes();
+		d_ram->writeByte(memAddr, d_regs->A());
+		return OpcodeResultContext::Builder(0xEA).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// LD A,(a16)
+	d_opcodes[0xFA] = [this]()
+	{
+		WordType rval = readNextTwoBytes();
+		d_regs->A(rval);
+		return OpcodeResultContext::Builder(0xFA).ShortCycle().IncrementPCDefault().Build();
+	};
+
 	// JR NZ, r8
 	d_opcodes[0x20] = [this]() 
 	{
