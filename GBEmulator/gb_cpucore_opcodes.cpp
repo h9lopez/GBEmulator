@@ -436,6 +436,23 @@ void CPUCore::initOpcodes()
 		return OpcodeResultContext::Builder(0x3A).ShortCycle().IncrementPCDefault().Build();
 	};
 
+	// ADD SP, r8
+	d_opcodes[0xE8] = [this]()
+	{
+		ByteType incVal = readNextByte();
+
+		// Detect carry and half carry
+		bool isHalfCarry = ((d_regs->SP() & 0xf) + (incVal & 0xf)) & 0x10;
+		unsigned int interimSum = static_cast<unsigned int>(d_regs->SP()) + 
+							  static_cast<unsigned int>(incVal);
+		bool isCarry = interimSum & 0x100;
+
+		d_regs->SP( d_regs->SP() + incVal );
+		d_regs->flagZero(false);
+		d_regs->flagSubtract(false);
+		return OpcodeResultContext::Builder(0xE8).ShortCycle().IncrementPCDefault().Build();
+	};
+
 	// LD HL,SP+r8
 	d_opcodes[0xF8] = [this]()
 	{
@@ -2281,6 +2298,20 @@ void CPUCore::initOpcodes()
 		return OpcodeResultContext::Builder(0xC9).ShortCycle().FreezePC().Build();
 	}; 
 
+	// RETI
+	// TODO: Actually re-enable interrupts after return
+	d_opcodes[0xD9] = [this]()
+	{
+		// Call RET opcode and then enable interrupts afterwards
+		OpcodeResultContext retContext = d_opcodes[0xC9]();
+
+		// TODO: Enable interrupts
+		// Currently unimplemented and this will throw
+		d_opcodes[0xFB]();
+
+		return OpcodeResultContext::Builder(0xD9).ShortCycle().FreezePC().Build();
+	};
+
 	// JP Section
 	// JP NZ,a16
 	d_opcodes[0xC2] = [this]()
@@ -2481,6 +2512,7 @@ void CPUCore::initOpcodes()
 		return OpcodeResultContext::Builder(0xF3).ShortCycle().FreezePC().Build();
 	};
 
+	// EI
 	d_opcodes[0xFB] = [this]()
 	{
 		throw std::runtime_error("Opcode 0xFB is unimplemented");
