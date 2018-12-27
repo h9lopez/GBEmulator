@@ -1,5 +1,4 @@
 #include "gtest/gtest.h"
-#include "stdafx.h"
 #include <iostream>
 #include <array>
 #include "CPUCore.h"
