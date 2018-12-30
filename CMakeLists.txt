@@ -24,3 +24,7 @@ target_link_libraries(gbemutest
 
 # TODO: Add workaround that has each GTest as its own test within ctest
 add_test(AllTests gbemutest)
+
+# Create the actual core runnable
+add_executable(gbemu GBEmulator/primary_loop.cpp)
+target_link_libraries(gbemu gbemucore)

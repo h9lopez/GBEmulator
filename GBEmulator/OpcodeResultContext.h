@@ -7,6 +7,14 @@ class OpcodeResultContext
 {
 
 public:
+	enum PCAction
+	{
+		FREEZE,
+		EXPLICIT_SET,
+		DEFAULT_INC,
+		EXPLICIT_INC
+	};
+
 	struct Properties
 	{
 		bool isCB;
@@ -16,6 +24,8 @@ public:
 		ByteType cycles;
 		ByteType pcIncrement;
 		WordType pcSet;
+
+		enum PCAction pc_action_taken;
 	};
 
 	Properties properties;
@@ -55,12 +65,14 @@ public:
 		Builder& IncrementPCDefault()
 		{
 			props.pcIncrement = 0;
+			props.pc_action_taken = PCAction::DEFAULT_INC;
 			return *this;
 		}
 
 		Builder& IncrementPCBy(ByteType pcInc)
 		{
 			props.pcIncrement = pcInc;
+			props.pc_action_taken = PCAction::EXPLICIT_INC;
 			return *this;
 		}
 
@@ -68,12 +80,14 @@ public:
 		{
 			// When called, will not change the value of the PC
 			props.pcIncrement = 0;
+			props.pc_action_taken = PCAction::FREEZE;
 			return *this;
 		}
 
 		Builder& SetPCTo(WordType pc)
 		{
 			props.pcSet = pc;
+			props.pc_action_taken = PCAction::EXPLICIT_SET;
 			return *this;
 		}
 

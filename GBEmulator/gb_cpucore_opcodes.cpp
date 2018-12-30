@@ -947,6 +947,7 @@ void CPUCore::initOpcodes()
 	d_opcodes[0x76] = [this]()
 	{
 		// TODO: Decide whether to use exception or return status
+		throw std::runtime_error("JOB IS DONE");
 		return OpcodeResultContext::Builder(0x76).ShortCycle().IncrementPCDefault().Build();
 	};
 
@@ -1544,6 +1545,13 @@ void CPUCore::initOpcodes()
 			[this]() { return d_ram->readByte(d_regs->HL()); }
 		);
 		return OpcodeResultContext::Builder(0x7E).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// LD (HL), A
+	d_opcodes[0x77] = [this]()
+	{
+		d_ram->writeByte(d_regs->HL(), d_regs->A());
+		return OpcodeResultContext::Builder(0x77).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// LD (HL), B
@@ -2287,7 +2295,6 @@ void CPUCore::initOpcodes()
 		}
 		return OpcodeResultContext::Builder(0xD8).ShortCycle().IncrementPCDefault().Build();
 	};
-
 
 	// RET
 	d_opcodes[0xC9] = [this]()

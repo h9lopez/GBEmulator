@@ -5,7 +5,7 @@ using namespace std;
 
 int main(void)
 {
-	static std::string bootROM = "C:\\Users\\hlope\\Downloads\\DMG_ROM.bin";
+	static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
 	// Initialize datamem and registers
 
 	// Load ROM into memspace
@@ -24,6 +24,22 @@ int main(void)
 	}
 
 	CPUCore core(ram, regs);
-	core.cycle();
+
+	try
+	{
+		while (true)
+		{
+			core.cycle();
+			//char c;
+			//std::cin >> c;
+		}
+	}
+	catch (std::runtime_error e)
+	{
+		std::cerr << "Caught error and exiting: " << e.what() << std::endl;
+
+		ByteType val = ram.readByte(0xBABF);
+		std::cerr << "Content at BABF: " << std::hex << +val << std::endl;
+	}
 
 }
