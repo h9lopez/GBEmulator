@@ -1,11 +1,14 @@
 #include <iostream>
 #include "CPUCore.h"
 #include "gb_rom.h"
+#include <boost/log/trivial.hpp>
 using namespace std;
 
 int main(void)
 {
-	static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
+	//static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
+	static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/DMG_ROM.bin";
+
 	// Initialize datamem and registers
 
 	// Load ROM into memspace
@@ -36,10 +39,9 @@ int main(void)
 	}
 	catch (std::runtime_error e)
 	{
-		std::cerr << "Caught error and exiting: " << e.what() << std::endl;
-
-		ByteType val = ram.readByte(0xBABF);
-		std::cerr << "Content at BABF: " << std::hex << +val << std::endl;
+		BOOST_LOG_TRIVIAL(fatal) << "Caught error and exiting " << e.what();
 	}
+
+	std::cout << "Ending state of RAM: " << ram << std::endl;
 
 }

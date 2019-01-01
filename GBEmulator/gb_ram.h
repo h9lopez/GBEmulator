@@ -4,6 +4,8 @@
 #include "gb_typeutils.h"
 #include <array>
 #include <iterator>
+#include <ostream>
+#include <iomanip>
 
 class RAM
 {
@@ -37,8 +39,26 @@ public:
 private:
     Container d_mem;
     int d_size;
-};
 
+
+	friend std::ostream& operator<<(std::ostream& os, const RAM& ram)
+	{
+		os << "[RAM DUMP, BOUNDS (MIN = 0, MAX = " << RAM::MEMSIZE << ")" << std::endl;
+
+		// This loop is definitely assuming an even boundary for the memory
+		for (int i = 0; i < RAM::MEMSIZE; i += 0x10)
+		{
+			os << std::setfill('0') << std::setw(4) << std::hex << i << ": ";
+			for (int j = 0; j != 0x10; j++)
+			{
+				os << " " << std::setfill('0') << std::setw(2) << std::hex << +ram.d_mem[i + j] << " ";
+			}
+			os << std::endl;
+		}
+		os << "]" << std::endl;
+		return os;
+	}
+};
 
 template<typename Iter>
 bool RAM::copyRangeFromBuffer(Iter fBegin, Iter fEnd, RAM::IT memTarget)

@@ -265,3 +265,4 @@ build/
 CMakeCache.txt
 *.cmake
 Makefile
+GBEmulator_Test/ASMTest/simpleLoadTest.o

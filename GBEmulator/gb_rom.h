@@ -2,6 +2,7 @@
 #define INCLUDED_GB_ROM
 
 #include <string>
+#include <boost/log/trivial.hpp>
 #include "gb_typeutils.h"
 #include "gb_ram.h"
 
@@ -27,7 +28,7 @@ bool ROMLoader::fromRawBytes(Iter beg, Iter end, RAM &obj)
 
 	if (!res)
 	{
-		std::cout << "ERROR: Copying ROM from byte list failed\n";
+		BOOST_LOG_TRIVIAL(error) << "Copying ROM from byte list failed";
 	}
 
 	return res;

@@ -2550,6 +2550,13 @@ void CPUCore::initOpcodes()
 
 	// =============== CB Opcode Section
 	// Initialize CB-prefix opcodes
+
+	// Placeholder element for the first opcode in the sequence
+	d_opcodes[0xCB] = [this]()
+	{
+		throw std::runtime_error("CB opcode should never be directly called");
+		return OpcodeResultContext::Builder(0xCB).ShortCycle().FreezePC().Build();
+	};
 	
 	// BIT 0, B
 	d_cbOpcodes[0x40] = [this]() { 
