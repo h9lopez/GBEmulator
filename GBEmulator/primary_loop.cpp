@@ -1,5 +1,6 @@
 #include <iostream>
 #include "CPUCore.h"
+#include "display/gb_ascii_screen.h"
 #include "gb_rom.h"
 #include <boost/log/trivial.hpp>
 using namespace std;

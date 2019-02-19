@@ -1,7 +1,7 @@
 #ifndef INCLUDED_GB_TYPEUTILS
 #define INCLUDED_GB_TYPEUTILS
 
-#include <stdint.h>
+#include <cstdint>
 #include <tuple>
 
 typedef uint16_t WordType;

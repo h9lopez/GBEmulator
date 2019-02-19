@@ -266,6 +266,21 @@ namespace {
 
 		regs.SP( regs.SP() - 2 );
 	}
+
+	// For use in RL opcodes
+	void fullCircularRotateLeft(RegBank &regs, RAM &ram,
+								std::function<void(ByteType)> regSet,
+								std::function<ByteType(void)> regGet)
+	{
+		std::bitset<BYTETYPE_SIZE> bytes(regGet());
+		bool highbit = bytes[bytes.size() - 1];
+		bytes <<= 1;
+		bytes[0] = regs.flagCarry();
+
+		regSet( (ByteType)bytes.to_ulong() );
+		regs.flagCarry(highbit);
+		regs.flagZero( bytes.to_ulong() == 0 );
+	}
 }
 
 
@@ -501,10 +516,11 @@ void CPUCore::initOpcodes()
 	// JR NZ, r8
 	d_opcodes[0x20] = [this]() 
 	{
+		ByteType incAmt = readNextByte();
+
 		if (!d_regs->flagZero())
 		{
 			// Do jump
-			ByteType incAmt = readNextByte();
 			return OpcodeResultContext::Builder(0x20).LongCycle().IncrementPCBy(incAmt).Build();
 		}
 
@@ -514,9 +530,9 @@ void CPUCore::initOpcodes()
 	// JR NC, r8
 	d_opcodes[0x30] = [this]()
 	{
+		ByteType incAmt = readNextByte();
 		if (!d_regs->flagCarry())
 		{
-			ByteType incAmt = readNextByte();
 			return OpcodeResultContext::Builder(0x30).LongCycle().IncrementPCBy(incAmt).Build();
 		}
 
@@ -533,9 +549,9 @@ void CPUCore::initOpcodes()
 	// JR Z, r8
 	d_opcodes[0x28] = [this]()
 	{
+		ByteType incAmt = readNextByte();
 		if (d_regs->flagZero())
 		{
-			ByteType incAmt = readNextByte();
 			return OpcodeResultContext::Builder(0x28).LongCycle().IncrementPCBy(incAmt).Build();
 		}
 		return OpcodeResultContext::Builder(0x28).ShortCycle().IncrementPCDefault().Build();
@@ -544,9 +560,9 @@ void CPUCore::initOpcodes()
 	// JR C, r8
 	d_opcodes[0x38] = [this]()
 	{
+		ByteType incAmt = readNextByte();
 		if (d_regs->flagCarry())
 		{
-			ByteType incAmt = readNextByte();
 			return OpcodeResultContext::Builder(0x38).LongCycle().IncrementPCBy(incAmt).Build();
 		}
 		return OpcodeResultContext::Builder(0x38).ShortCycle().IncrementPCDefault().Build();
@@ -2323,10 +2339,10 @@ void CPUCore::initOpcodes()
 	// JP NZ,a16
 	d_opcodes[0xC2] = [this]()
 	{
+		WordType jpAddr = readNextTwoBytes();
 		if (!d_regs->flagZero())
 		{
 			// Set PC to address read in
-			WordType jpAddr = readNextTwoBytes();
 			return OpcodeResultContext::Builder(0xC2).LongCycle().SetPCTo(jpAddr).Build();
 		}
 		return OpcodeResultContext::Builder(0xC2).ShortCycle().IncrementPCDefault().Build();
@@ -2335,10 +2351,10 @@ void CPUCore::initOpcodes()
 	// JP NC,a16
 	d_opcodes[0xD2] = [this]()
 	{
+		WordType jpAddr = readNextTwoBytes();
 		if (!d_regs->flagCarry())
 		{
 			// Set PC to address read in
-			WordType jpAddr = readNextTwoBytes();
 			return OpcodeResultContext::Builder(0xD2).LongCycle().SetPCTo(jpAddr).Build();
 		}
 		return OpcodeResultContext::Builder(0xD2).ShortCycle().IncrementPCDefault().Build();
@@ -2355,10 +2371,10 @@ void CPUCore::initOpcodes()
 	// JP Z,a16
 	d_opcodes[0xCA] = [this]()
 	{
+		WordType jpAddr = readNextTwoBytes();
 		if (d_regs->flagZero())
 		{
 			// Set PC to address read in
-			WordType jpAddr = readNextTwoBytes();
 			return OpcodeResultContext::Builder(0xCA).LongCycle().SetPCTo(jpAddr).Build();
 		}
 		return OpcodeResultContext::Builder(0xCA).ShortCycle().IncrementPCDefault().Build();
@@ -2367,10 +2383,10 @@ void CPUCore::initOpcodes()
 	// JP C,a16
 	d_opcodes[0xDA] = [this]()
 	{
+		WordType jpAddr = readNextTwoBytes();
 		if (d_regs->flagCarry())
 		{
 			// Set PC to address read in
-			WordType jpAddr = readNextTwoBytes();
 			return OpcodeResultContext::Builder(0xDA).LongCycle().SetPCTo(jpAddr).Build();
 		}
 		return OpcodeResultContext::Builder(0xDA).ShortCycle().IncrementPCDefault().Build();
@@ -2454,9 +2470,9 @@ void CPUCore::initOpcodes()
 	// CALL NZ,a16
 	d_opcodes[0xC4] = [this]()
 	{
+		WordType targetAddr = readNextTwoBytes();
 		if (!d_regs->flagZero())
 		{
-			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
 			return OpcodeResultContext::Builder(0xC4).LongCycle().FreezePC().Build();
 		}
@@ -2466,9 +2482,9 @@ void CPUCore::initOpcodes()
 	// CALL NC,a16
 	d_opcodes[0xD4] = [this]()
 	{
+		WordType targetAddr = readNextTwoBytes();
 		if (!d_regs->flagCarry())
 		{
-			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
 			return OpcodeResultContext::Builder(0xD4).LongCycle().FreezePC().Build();
 		}
@@ -2478,9 +2494,9 @@ void CPUCore::initOpcodes()
 	// CALL Z,a16
 	d_opcodes[0xCC] = [this]()
 	{
+		WordType targetAddr = readNextTwoBytes();
 		if (d_regs->flagZero())
 		{
-			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
 			return OpcodeResultContext::Builder(0xCC).LongCycle().FreezePC().Build();
 		}
@@ -2490,9 +2506,9 @@ void CPUCore::initOpcodes()
 	// CALL C,a16
 	d_opcodes[0xDC] = [this]()
 	{
+		WordType targetAddr = readNextTwoBytes();
 		if (d_regs->flagCarry())
 		{
-			WordType targetAddr = readNextTwoBytes();
 			performCall(*d_regs, *d_ram, targetAddr);
 			return OpcodeResultContext::Builder(0xDC).LongCycle().FreezePC().Build();
 		}
@@ -2882,7 +2898,7 @@ void CPUCore::initOpcodes()
 	// 0x7C - BIT 7, H
 	d_cbOpcodes[0x7C] = [this]() {
 		checkBit(*d_regs, [this]() { return d_regs->H(); }, 7);
-		return OpcodeResultContext::Builder(0x7C).ShortCycle().IncrementPCDefault().Build();;
+		return OpcodeResultContext::Builder(0x7C, true).ShortCycle().IncrementPCDefault().Build();;
 	};
 	// 0x7D - BIT 7, L
 	d_cbOpcodes[0x7D] = [this]() {
@@ -2900,6 +2916,21 @@ void CPUCore::initOpcodes()
 		return OpcodeResultContext::Builder(0x7F).ShortCycle().IncrementPCDefault().Build();;
 	};
 
+	// 0x10 - RL B
+	d_cbOpcodes[0x10] = [this]() {
+		fullCircularRotateLeft(*d_regs, *d_ram,
+							[this](ByteType t) { d_regs->B(t); },
+							[this]() { return d_regs->B(); });
+		return OpcodeResultContext::Builder(0x10, true).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// 0x11 - RL C
+	d_cbOpcodes[0x11] = [this]() {
+		fullCircularRotateLeft(*d_regs, *d_ram,
+							[this](ByteType t) { d_regs->C(t); },
+							[this]() { return d_regs->C(); });
+		return OpcodeResultContext::Builder(0x11, true).ShortCycle().IncrementPCDefault().Build();
+	};
 
 
 }

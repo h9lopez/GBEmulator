@@ -28,7 +28,7 @@ ByteType CPUCore::readNextByte() const
 {
 	ByteType res = d_ram->readByte(d_regs->IncPC());
 	
-	BOOST_LOG_TRIVIAL(debug) << "Read single byte from ROM: " << std::setfill('0') << std::setw(2) << std::hex << res;
+	BOOST_LOG_TRIVIAL(debug) << "Read single byte from ROM: " << std::setfill('0') << std::setw(2) << std::hex << +res;
 	//return d_ram->readByte(d_regs->IncPC());
 	return res;
 }
@@ -36,7 +36,7 @@ ByteType CPUCore::readNextByte() const
 WordType CPUCore::readNextTwoBytes() const
 {
 	WordType res = d_ram->readWord(d_regs->PC());
-	BOOST_LOG_TRIVIAL(debug) << "Reading two bytes of ROM: " << std::setfill('0') << std::setw(4) << std::hex << res;
+	BOOST_LOG_TRIVIAL(debug) << "Reading two bytes of ROM: " << std::setfill('0') << std::setw(4) << std::hex << +res;
 
 	d_regs->IncPCBy(2);
 	return res;
@@ -44,6 +44,9 @@ WordType CPUCore::readNextTwoBytes() const
 
 void CPUCore::cycle()
 {
+	BOOST_LOG_TRIVIAL(info) << "----------BEGIN CYCLE----------";
+	BOOST_LOG_TRIVIAL(debug) << "Current PC is: 0x" << std::setfill('0') << std::setw(4) << std::hex << +d_regs->PC();
+
 	ByteType opcode = d_ram->readByte(d_regs->IncPC());
 
 	OpcodeContainer::iterator it = d_opcodes.find(opcode);
@@ -80,13 +83,14 @@ void CPUCore::cycle()
 		}
 		else
 		{
-			d_regs->PC(d_regs->PC() + context.properties.pcIncrement);
+			int8_t result = context.properties.pcIncrement;
+			BOOST_LOG_TRIVIAL(debug) << "Interpreting pcIncrement as signed value: " << std::hex << +result;
+			d_regs->PC(d_regs->PC() + result);
 		}
 	}
 	else 
 	{
 		BOOST_LOG_TRIVIAL(info) << "Observing instruction -> opcode=" << std::hex << +opcode << ", instr=" << INSTR_META[opcode].name;
-		BOOST_LOG_TRIVIAL(debug) << "Current PC is: " << d_regs->PC();
 		
 		// One byte instruction
 		if (d_opcodes.find(opcode) == d_opcodes.end())
@@ -106,7 +110,10 @@ void CPUCore::cycle()
 		}
 		else
 		{
-			d_regs->PC(d_regs->PC() + context.properties.pcIncrement);
+			int8_t result = context.properties.pcIncrement;
+			BOOST_LOG_TRIVIAL(debug) << "Interpreting pcIncrement as signed value: " << std::hex << +result;
+			d_regs->PC(d_regs->PC() + result);
 		}
 	}
+	BOOST_LOG_TRIVIAL(info) << "----------END CYCLE----------" << std::endl << std::endl;
 }
