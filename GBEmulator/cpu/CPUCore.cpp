@@ -1,12 +1,14 @@
-#include "CPUCore.h"
-#include "gb_typeutils.h"
-#include "ReverseOpcodeMap.h"
-#include "OpcodeResultContext.h"
 #include <iostream>
 #include <iomanip>
 #include <arpa/inet.h>
 #include <sstream>
 #include <boost/log/trivial.hpp>
+
+#include <cpu/CPUCore.h>
+#include <cpu/opcodes/OpcodeResultContext.h>
+
+#include <utils/ReverseOpcodeMap.h>
+#include <utils/gb_typeutils.h>
 
 using namespace Core;
 
@@ -14,6 +16,7 @@ CPUCore::CPUCore(RAM& ram, RegBank& regs)
 	: d_ram(&ram), d_regs(&regs), d_cycles(0)
 {
 	initOpcodes();
+	initCBOpcodes();
 }
 
 const RAM * CPUCore::ram() const
@@ -57,6 +60,8 @@ void CPUCore::reportOpcodeCoverage(const OpcodeMetadata mapReference[], const Op
 	std::vector<ByteType> unfoundMap;
 	for (begin = cursor; cursor != 0xFF; ++cursor)
 	{
+		// There are some opcodes that aren't implemented. These are designated by the "ERR" name that I gave it.
+		// Could definitely be a better title or even just a global constant instead of this hardcoded value.
 		if (container.find(cursor) == container.end()
 			&& mapReference[cursor].name != "ERR")
 		{
@@ -70,6 +75,7 @@ void CPUCore::reportOpcodeCoverage(const OpcodeMetadata mapReference[], const Op
 
 	BOOST_LOG_TRIVIAL(info) << "[FOUND] \t0x" << std::hex << (unsigned int)begin << "\t - \t0x" << (cursor - 1);
 
+	// Start printing out all the ones that WEREN'T found
 	for (std::vector<ByteType>::const_iterator cit = unfoundMap.begin();
 		 cit != unfoundMap.end();
 		 ++cit)

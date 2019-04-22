@@ -1,7 +1,7 @@
 #ifndef INCLUDED_GB_REGS
 #define INCLUDED_GB_REGS
 
-#include "gb_typeutils.h"
+#include <utils/gb_typeutils.h>
 
 class RegBank
 {

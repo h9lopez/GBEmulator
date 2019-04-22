@@ -4,10 +4,14 @@
 #include <memory>
 #include <map>
 #include <functional>
-#include "gb_ram.h"
-#include "gb_regs.h"
-#include "gb_typeutils.h"
-#include "OpcodeResultContext.h"
+
+#include <cpu/opcodes/OpcodeResultContext.h>
+
+#include <ram/gb_ram.h>
+#include <registers/gb_regs.h>
+
+#include <utils/gb_typeutils.h>
+#include <utils/ReverseOpcodeMap.h>
 
 namespace Core {
 typedef std::map< ByteType, std::function<OpcodeResultContext(void)> >  OpcodeContainer;
@@ -25,12 +29,14 @@ public:
     // Member getters 
     const RAM* ram() const;
     CycleCount cycleCount() const;
+
 	/** Get the map containing all of the mapped opcode -> handler functions.
 	 */
 	const OpcodeContainer &getPrimaryOpcodes() const
 	{
 		return this->d_opcodes;
 	}
+
 	/** Get the map containing all of the mapped opcode -> handler functions for CB opcodes.
 	 */
 	const OpcodeContainer &getSecondaryOpcodes() const
@@ -69,7 +75,24 @@ private:
     OpcodeContainer d_cbOpcodes;
 	ByteType d_opcodeCycles;
 
+	/**Initialize handlers for the main opcode table.
+	 * 
+	 * This function attaches ALL handlers to each of the opcodes in the primary opcode table.
+	 * This handles the main 0x00 - 0xFF opcodes.
+	 * 
+	 * Opcodes indexed under the 0xCB primary opcode are initialized in the initCBOpcodes function.
+	 * 
+	 * After this function is called, the d_opcodes container will be initialized.
+	 */
 	void initOpcodes();
+
+	/**Initialize handlers for the CB opcode table.
+	 * 
+	 * All opcodes under the primary 0xCB key are initialized under here. This handles 0x00 - 0xFF
+	 * under that 0xCB subtable.
+	 */
+	void initCBOpcodes();
+
 	ByteType readNextByte() const;
 	WordType readNextTwoBytes() const;
 };

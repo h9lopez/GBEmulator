@@ -2,7 +2,7 @@
 
 #include <boost/log/trivial.hpp>
 
-void ASCIIScreen::ASCIIScreen(RAM &ram)
+ASCIIScreen::ASCIIScreen(RAM &ram)
 {
     BOOST_LOG_TRIVIAL(debug) << "Initializing screen objetc";
 }

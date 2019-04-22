@@ -1,9 +1,10 @@
 #include <iostream>
-#include "CPUCore.h"
-#include "display/gb_ascii_screen.h"
-#include "gb_rom.h"
+#include <cpu/CPUCore.h>
+#include <display/gb_ascii_screen.h>
+#include <romloader/gb_rom.h>
+
+
 #include <boost/log/trivial.hpp>
-#include "ReverseOpcodeMap.h"
 using namespace std;
 
 int main(void)

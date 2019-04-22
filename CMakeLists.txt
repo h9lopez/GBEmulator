@@ -7,9 +7,10 @@ SET(Boost_USE_STATIC_LIBS ON)
 FIND_PACKAGE(Boost COMPONENTS log REQUIRED)
 
 # Set up the core library itself for use by both the main exec and the testing project
-file(GLOB CPP_SRC "GBEmulator/display/*.cpp")
-file(GLOB CPP_SRC "GBEmulator/*.cpp")
+file(GLOB CPP_SRC "GBEmulator/*/*/*.cpp" "GBEmulator/*/*.cpp" "GBEmulator/*.cpp")
 include_directories(GBEmulator)
+include_directories(GBEmulator/cpu/opcodes GBEmulator/cpu GBEmulator/display GBEmulator/ram
+    GBEmulator/registers GBEmulator/romloader GBEmulator/utils)
 add_library(gbemucore ${CPP_SRC})
 #target_compile_definitions(gbemucore PRIVATE BOOST_LOG_DYN_LINK)
 #target_link_libraries(gbemucore boost_log pthread)

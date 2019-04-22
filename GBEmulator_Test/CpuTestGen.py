@@ -262,7 +262,7 @@ def main():
             "#include \"stdafx.h\"\n",
             '#include <iostream>\n',
             '#include <array>\n',
-            '#include "CPUCore.h"\n',
+            '#include <cpu/CPUCore.h>\n',
             '#include "OpcodesTest.hpp"\n\n\n',
             resultingCode,
             "int main(int argc, char *argv[])\n{\n\ttesting::InitGoogleTest(&argc, argv);\n\tRUN_ALL_TESTS();\n\tstd::getchar();\n    return 0;\n}"

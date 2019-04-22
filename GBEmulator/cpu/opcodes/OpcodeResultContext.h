@@ -1,7 +1,7 @@
 #pragma once
 
-#include "gb_typeutils.h"
-#include "ReverseOpcodeMap.h"
+#include <utils/gb_typeutils.h>
+#include <utils/ReverseOpcodeMap.h>
 
 class OpcodeResultContext
 {

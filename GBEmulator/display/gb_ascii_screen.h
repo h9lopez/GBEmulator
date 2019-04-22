@@ -1,8 +1,8 @@
 #ifndef INCLUDE_GB_ASCII_SCREEN_HEADER
 #define INCLUDE_GB_ASCII_SCREEN_HEADER
 
-#include "gb_screen_api.h"
-#include "gb_ram.h"
+#include <display/gb_screen_api.h>
+#include <ram/gb_ram.h>
 
 class ASCIIScreen : public IDisplay
 {

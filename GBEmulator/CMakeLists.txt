@@ -6,5 +6,6 @@ project (GBEmulator)
 include_directories("${PROJECT_SOURCE_DIR}")
 
 file(GLOB SOURCES "*.cpp")
+file(GLOB SOURCES "*/*.cpp")
 
 add_executable(GBEmulator ${SOURCES})

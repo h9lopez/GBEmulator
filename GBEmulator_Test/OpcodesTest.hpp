@@ -1,8 +1,8 @@
 #pragma once
 
 #include "gtest/gtest.h"
-#include "CPUCore.h"
-#include "gb_rom.h"
+#include <cpu/CPUCore.h>
+#include <romloader/gb_rom.h>
 
 #include <vector>
 

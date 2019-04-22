@@ -1,7 +1,7 @@
 #ifndef INCLUDED_GB_RAM
 #define INCLUDED_GB_RAM
 
-#include "gb_typeutils.h"
+#include <utils/gb_typeutils.h>
 #include <array>
 #include <iterator>
 #include <ostream>

@@ -3,8 +3,8 @@
 
 #include <string>
 #include <boost/log/trivial.hpp>
-#include "gb_typeutils.h"
-#include "gb_ram.h"
+#include <utils/gb_typeutils.h>
+#include <ram/gb_ram.h>
 
 class ROMLoader
 {
