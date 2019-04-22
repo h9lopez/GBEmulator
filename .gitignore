@@ -266,3 +266,26 @@ CMakeCache.txt
 *.cmake
 Makefile
 GBEmulator_Test/ASMTest/simpleLoadTest.o
+CMakeLists.txt.user
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Testing
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps
+
+# Binaries
+gbemu
+gbemutest
+libgbemucore.a
+*.bin
+*.gb
+
+# VS Code
+.vscode
+.vscode/settings.json
+.DS_Store

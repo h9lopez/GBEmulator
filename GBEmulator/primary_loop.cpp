@@ -3,6 +3,7 @@
 #include "display/gb_ascii_screen.h"
 #include "gb_rom.h"
 #include <boost/log/trivial.hpp>
+#include "ReverseOpcodeMap.h"
 using namespace std;
 
 int main(void)
@@ -27,15 +28,19 @@ int main(void)
 		cout << "FAILED ROM LOADING\n";
 	}
 
-	CPUCore core(ram, regs);
+	Core::CPUCore core(ram, regs);
+
+	BOOST_LOG_TRIVIAL(info) << "Regular opcode map: ";
+	Core::CPUCore::reportOpcodeCoverage(INSTR_META, core.getPrimaryOpcodes());
+	BOOST_LOG_TRIVIAL(info) << "CB opcode map: ";
+	Core::CPUCore::reportOpcodeCoverage(INSTR_CB_META, core.getSecondaryOpcodes());
+	exit(1);
 
 	try
 	{
 		while (true)
 		{
 			core.cycle();
-			//char c;
-			//std::cin >> c;
 		}
 	}
 	catch (std::runtime_error e)

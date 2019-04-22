@@ -33,7 +33,7 @@ protected:
 
 	RegBank snapshot;
 	RAM memSnapshot;
-	CPUCore cpu;
+	Core::CPUCore cpu;
 	RegBank regs;
 	RAM mem;
 

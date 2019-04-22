@@ -8,6 +8,8 @@
 #include <sstream>
 #include <boost/log/trivial.hpp>
 
+using namespace Core;
+
 CPUCore::CPUCore(RAM& ram, RegBank& regs)
 	: d_ram(&ram), d_regs(&regs), d_cycles(0)
 {
@@ -40,6 +42,42 @@ WordType CPUCore::readNextTwoBytes() const
 
 	d_regs->IncPCBy(2);
 	return res;
+}
+
+
+void CPUCore::reportOpcodeCoverage(const OpcodeMetadata mapReference[], const OpcodeContainer &container)
+{
+	// Cycle through opcode map and report on range of opcodes covered and which are uncovered
+	BOOST_LOG_TRIVIAL(info) << "--------OPCODE COVERAGE REPORT--------";
+
+	// Main opcode table
+	ByteType cursor = 0x00;
+	ByteType begin = 0x00;
+
+	std::vector<ByteType> unfoundMap;
+	for (begin = cursor; cursor != 0xFF; ++cursor)
+	{
+		if (container.find(cursor) == container.end()
+			&& mapReference[cursor].name != "ERR")
+		{
+			// Opcode not found at this location
+			unfoundMap.push_back(cursor);
+			// Print out the range up to this point
+			BOOST_LOG_TRIVIAL(info) << "[FOUND] \t0x" << std::hex << (unsigned int)begin << "\t - \t0x" << (cursor - 1);
+			begin = cursor + 0x01;
+		}
+	}
+
+	BOOST_LOG_TRIVIAL(info) << "[FOUND] \t0x" << std::hex << (unsigned int)begin << "\t - \t0x" << (cursor - 1);
+
+	for (std::vector<ByteType>::const_iterator cit = unfoundMap.begin();
+		 cit != unfoundMap.end();
+		 ++cit)
+	{
+		BOOST_LOG_TRIVIAL(info) << "[MISSING] \t0x" << std::hex << (unsigned int)(*cit) << "\t - \t" << mapReference[(unsigned int)(*cit)].name;
+	}
+
+	BOOST_LOG_TRIVIAL(info) << "--------END OPCODE COVERAGE REPORT--------";
 }
 
 void CPUCore::cycle()

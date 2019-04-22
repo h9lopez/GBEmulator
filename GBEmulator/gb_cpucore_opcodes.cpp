@@ -5,6 +5,7 @@
 #include "CPUCore.h"
 #include "OpcodeResultContext.h"
 
+using namespace Core;
 
 // This namespace will contain generic helper functions that don't modify any
 // register/cpu state
