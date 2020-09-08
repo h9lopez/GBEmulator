@@ -17,11 +17,27 @@ void CPUCore::initCBOpcodes()
 		throw std::runtime_error("CB opcode should never be directly called");
 		return OpcodeResultContext::Builder(0xCB).ShortCycle().FreezePC().Build();
 	};
+
+	// RLC B
+	d_cbOpcodes[0x00] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->B(t); },
+			[this]() { return d_regs->B(); });
+		return OpcodeResultContext::Builder(0x00, true).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// RLC C
+	d_cbOpcodes[0x01] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->C(t); },
+			[this](){ return d_regs->C(); });
+		return OpcodeResultContext::Builder(0x01, true).ShortCycle().IncrementPCDefault().Build();
+	};
 	
 	// BIT 0, B
 	d_cbOpcodes[0x40] = [this]() { 
 		OpcodeUtils::checkBit(*d_regs, [this]() { return d_regs->B(); }, 0); 
-		return OpcodeResultContext::Builder(0x40).ShortCycle().IncrementPCDefault().Build();;
+		return OpcodeResultContext::Builder(0x40).ShortCycle().IncrementPCDefault().Build();
 	};
 
 	// 0x41 - BIT 0, C

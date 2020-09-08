@@ -1788,21 +1788,6 @@
                 "PC": "0x01"
             },
             "flags": "1011"
-        },
-        {
-            "opcode": "0x3C",
-            "startingState": {
-                "regs": {
-                    "A": "0x00"
-                },
-                "flags": "0000"
-            },
-            "sequence": "3C3C3C",
-            "cycles": 12,
-            "regs": {
-                "A": "0x03"
-            },
-            "flags": "0000"
         }
     ]
 }

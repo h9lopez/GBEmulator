@@ -62,7 +62,7 @@ public:
 
     // Execution functions
     void cycle();
-    
+
 private:
 	// The pair is returned from an opcode lambda
 	// of the form CYCLE

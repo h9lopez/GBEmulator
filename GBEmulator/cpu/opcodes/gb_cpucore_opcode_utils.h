@@ -71,6 +71,10 @@ namespace OpcodeUtils {
 	void fullCircularRotateLeft(RegBank &regs, RAM &ram,
 								std::function<void(ByteType)> regSet,
 								std::function<ByteType(void)> regGet);
+
+	void fullRotateLeftCarry(RegBank &regs,
+								std::function<void(ByteType)> regSet,
+								std::function<ByteType(void)> regGet);
 } }
 
 #endif

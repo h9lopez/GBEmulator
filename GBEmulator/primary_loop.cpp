@@ -9,8 +9,8 @@ using namespace std;
 
 int main(void)
 {
-	//static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
-	static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/DMG_ROM.bin";
+	static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
+	//static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/DMG_ROM.bin";
 
 	// Initialize datamem and registers
 
@@ -35,8 +35,8 @@ int main(void)
 	Core::CPUCore::reportOpcodeCoverage(INSTR_META, core.getPrimaryOpcodes());
 	BOOST_LOG_TRIVIAL(info) << "CB opcode map: ";
 	Core::CPUCore::reportOpcodeCoverage(INSTR_CB_META, core.getSecondaryOpcodes());
-	exit(1);
 
+	BOOST_LOG_TRIVIAL(info) << "Starting ROM: ";
 	try
 	{
 		while (true)

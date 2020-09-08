@@ -273,4 +273,19 @@ namespace OpcodeUtils {
 		regs.flagCarry(highbit);
 		regs.flagZero( bytes.to_ulong() == 0 );
 	}
+
+	void fullRotateLeftCarry(RegBank &regs,
+								std::function<void(ByteType)> regSet,
+								std::function<ByteType(void)> regGet)
+	{
+		const ByteType target = regGet();
+		ByteType highbit = (target & 0x80) >> 7;
+		ByteType result = circularRotateLeft(target);
+		
+		regs.flagZero((result == 0));
+		regs.flagCarry(highbit);
+		regs.flagSubtract(false);
+		regs.flagHalfCarry(false);
+		regSet(result);
+	}
 } }

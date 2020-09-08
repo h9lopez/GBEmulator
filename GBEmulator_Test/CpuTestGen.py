@@ -259,7 +259,6 @@ def main():
     with open("GBEmulator_Test.gen.cpp", "w") as fil:
         fil.writelines([
             "#include \"gtest/gtest.h\"\n",
-            "#include \"stdafx.h\"\n",
             '#include <iostream>\n',
             '#include <array>\n',
             '#include <cpu/CPUCore.h>\n',
