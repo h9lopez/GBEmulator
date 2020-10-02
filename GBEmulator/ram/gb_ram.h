@@ -5,7 +5,10 @@
 #include <array>
 #include <iterator>
 #include <ostream>
+#include <fstream>
 #include <iomanip>
+
+#include <boost/log/trivial.hpp>
 
 class RAM
 {
@@ -57,6 +60,29 @@ private:
 		}
 		os << "]" << std::endl;
 		return os;
+	}
+
+	friend std::ofstream& operator<<(std::ofstream& os, const RAM& ram)
+	{
+		for (auto it = ram.cbegin(); it != ram.cend(); ++it)
+		{
+			unsigned char temp = static_cast<unsigned char>(*it);
+			os << temp;
+		}
+
+		return os;
+	}
+
+	friend std::ifstream& operator>>(std::ifstream& is, RAM& ram)
+	{
+		Address addr;
+		for (addr = 0;  addr < RAM::MEMSIZE; addr++)
+		{
+			unsigned char temp;
+			is >> temp;
+			ram.writeByte(addr, static_cast<ByteType>(temp));
+		}
+		return is;
 	}
 };
 

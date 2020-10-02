@@ -4,7 +4,7 @@ set (CMAKE_CXX_STANDARD 14)
 project(GBEmulator)
 
 SET(Boost_USE_STATIC_LIBS ON)
-FIND_PACKAGE(Boost COMPONENTS log REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS log program_options REQUIRED)
 
 # Set up the core library itself for use by both the main exec and the testing project
 file(GLOB CPP_SRC "GBEmulator/*/*/*.cpp" "GBEmulator/*/*.cpp" "GBEmulator/*.cpp")
@@ -15,6 +15,15 @@ add_library(gbemucore ${CPP_SRC})
 #target_compile_definitions(gbemucore PRIVATE BOOST_LOG_DYN_LINK)
 #target_link_libraries(gbemucore boost_log pthread)
 
+# thehandler tool
+include_directories(thehandler)
+file(GLOB HANDLER_CPP_SRC "thehandler/*.cpp")
+add_executable(thehandler ${HANDLER_CPP_SRC})
+target_include_directories(thehandler PRIVATE thehandler)
+target_link_libraries(thehandler
+    gbemucore
+    ${Boost_LIBRARIES}
+)
 
 # Configure the testing target
 enable_testing()
