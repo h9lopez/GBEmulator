@@ -1,17 +1,43 @@
 #include <iostream>
 #include <cpu/CPUCore.h>
 #include <display/gb_ascii_screen.h>
+#include <display/gb_sdl_screen.h>
 #include <romloader/gb_rom.h>
 #include <fstream>
+#include <SDL2/SDL.h>
 
 
 #include <boost/log/trivial.hpp>
 #include <boost/program_options.hpp>
 using namespace std;
 
+// SDL consts
+#define DEBUG_SDL_WINDOW_TITLE "[DEBUG] SDL test"
+#define DEBUG_SDL_WINDOW_HEIGHT 256
+#define DEBUG_SDL_WINDOW_WIDTH 256 
 
-const string ARG_ROM_PATH = "romPath";
-const string ARG_MEM_DUMP_PATH = "memDumpPath";
+// ROM debug consts
+#define ARG_ROM_PATH "romPath"
+#define ARG_MEM_DUMP_PATH "memDumpPath"
+
+SDL_Window* localSDLInit()
+{
+    if (SDL_Init( SDL_INIT_VIDEO ) < 0) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to initialize SDL video";
+        return NULL;
+    }
+    
+    auto sdlWindow = SDL_CreateWindow(DEBUG_SDL_WINDOW_TITLE, 
+                    SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 
+                    DEBUG_SDL_WINDOW_WIDTH, DEBUG_SDL_WINDOW_HEIGHT, 
+                    SDL_WINDOW_SHOWN);
+    if (sdlWindow == NULL) {
+        BOOST_LOG_TRIVIAL(error) << "Failed to create SDL window";
+        return NULL;
+    }
+    return sdlWindow;
+}
+
 
 int main(int argc, char *argv[])
 {
@@ -47,9 +73,20 @@ int main(int argc, char *argv[])
 
 	// Load ROM into memspace
 
+	auto sdlWindow = localSDLInit();
 	RAM ram;
+	SDLScreen screen(&ram, sdlWindow);
 	RegBank regs;
-	
+
+	SDL_ShowWindow(sdlWindow);
+	ram.registerSegmentUpdateSlot(boost::bind(&SDLScreen::processVRAMUpdate, &screen, _1, _2));	
+
+	// Add a watcher for the BTT found at range 9800-9BFF
+	AddressRange bttRange;
+	bttRange.start = 0x9800;
+	bttRange.end = 0x9BFF;
+	ram.addSegmentWatcher(bttRange, boost::bind(&SDLScreen::processBTTUpdate, &screen, _1, _2));
+
 	BOOST_LOG_TRIVIAL(info) << "Attempting to load boot ROM";
 	if (ROMLoader::fromFile(bootROM, ram))
 	{
@@ -62,24 +99,48 @@ int main(int argc, char *argv[])
 	Core::CPUCore core(ram, regs);
 
 	BOOST_LOG_TRIVIAL(info) << "Regular opcode map: ";
-	Core::CPUCore::reportOpcodeCoverage(INSTR_META, core.getPrimaryOpcodes());
+	//Core::CPUCore::reportOpcodeCoverage(INSTR_META, core.getPrimaryOpcodes());
 	BOOST_LOG_TRIVIAL(info) << "CB opcode map: ";
-	Core::CPUCore::reportOpcodeCoverage(INSTR_CB_META, core.getSecondaryOpcodes());
+	//Core::CPUCore::reportOpcodeCoverage(INSTR_CB_META, core.getSecondaryOpcodes());
 
 	BOOST_LOG_TRIVIAL(info) << "Starting ROM: ";
 	try
 	{
-		while (true)
-		{
-			core.cycle();
+
+		SDL_Event ev;
+		bool quit = false;
+		bool cpuStall = false;
+		while (!quit) {
+			try {
+				if (!cpuStall) {
+					core.cycle();
+				}
+			}
+			catch (std::runtime_error ex) {
+				cpuStall = true;
+			}
+
+			while (SDL_PollEvent(&ev)){
+				if (ev.type == SDL_QUIT){
+					quit = true;
+				}
+				if (ev.type == SDL_KEYDOWN){
+				}
+				if (ev.type == SDL_MOUSEBUTTONDOWN){
+				}
+			}
 		}
 	}
-	catch (std::runtime_error e)
+	catch (std::runtime_error ex)
 	{
-		BOOST_LOG_TRIVIAL(fatal) << "Caught error and exiting " << e.what();
+		BOOST_LOG_TRIVIAL(fatal) << "Caught error and exiting " << ex.what();
 	}
 
-	BOOST_LOG_TRIVIAL(info) << "Ending state of RAM: " << ram;
+
+
+	SDL_DestroyWindow(sdlWindow);
+
+	//BOOST_LOG_TRIVIAL(info) << "Ending state of RAM: " << ram;
 	if (!memDumpPath.empty()) {
 		std::ofstream fileStream;
 		fileStream.open(memDumpPath, std::ios::out | std::ios::binary);

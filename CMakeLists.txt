@@ -4,7 +4,9 @@ set (CMAKE_CXX_STANDARD 14)
 project(GBEmulator)
 
 SET(Boost_USE_STATIC_LIBS ON)
-FIND_PACKAGE(Boost COMPONENTS log program_options REQUIRED)
+FIND_PACKAGE(Boost COMPONENTS log program_options signals REQUIRED)
+FIND_PACKAGE(SDL2 REQUIRED)
+
 
 # Set up the core library itself for use by both the main exec and the testing project
 file(GLOB CPP_SRC "GBEmulator/*/*/*.cpp" "GBEmulator/*/*.cpp" "GBEmulator/*.cpp")
@@ -45,5 +47,6 @@ add_test(AllTests gbemutest)
 # Create the actual core runnable
 add_executable(gbemu GBEmulator/primary_loop.cpp)
 target_link_libraries(gbemu gbemucore
-                            ${Boost_LIBRARIES})
+                            ${Boost_LIBRARIES}
+                            ${SDL2_LIBRARIES})
 #target_compile_definitions(gbemu PRIVATE BOOST_LOG_DYN_LINK)

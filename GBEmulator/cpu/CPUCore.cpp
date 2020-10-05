@@ -135,7 +135,7 @@ void CPUCore::cycle()
 	else 
 	{
 		BOOST_LOG_TRIVIAL(info) << "Observing instruction -> opcode=" << std::hex << +opcode << ", instr=" << INSTR_META[opcode].name;
-		
+
 		// One byte instruction
 		if (d_opcodes.find(opcode) == d_opcodes.end())
 		{

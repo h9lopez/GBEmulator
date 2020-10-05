@@ -10,6 +10,8 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <boost/signals2.hpp>
+
 class RAM
 {
 private:
@@ -18,8 +20,17 @@ private:
 	typedef Container::iterator IT;
 	typedef Container::const_iterator CIT;
 
+
 public:
-    RAM();
+	typedef union {
+		WordType word;
+		ByteType byte;
+	} SegmentUpdateData;
+
+	RAM();
+
+	void addSegmentWatcher(const AddressRange& range, boost::signals2::slot<void (Address, SegmentUpdateData)> watcher);
+
 
 	// helper function for debugging
 	void copyCurrentState(RAM& dest) const;
@@ -29,6 +40,8 @@ public:
 
     void writeByte(Address addr, ByteType val);
     void writeWord(Address addr, WordType val);
+
+	void registerSegmentUpdateSlot(boost::signals2::slot<void (Address, SegmentUpdateData)> slot);
 
 	template<typename Iter>
 	bool copyRangeFromBuffer(Iter begin, Iter end, IT memTarget);
@@ -40,9 +53,10 @@ public:
 	CIT cend() const;
 
 private:
+	boost::signals2::signal<void (Address, SegmentUpdateData)> SegmentUpdateSignal;
     Container d_mem;
     int d_size;
-
+	std::map<AddressRange, std::shared_ptr<boost::signals2::signal<void (Address, SegmentUpdateData)> > > d_signalMap;
 
 	friend std::ostream& operator<<(std::ostream& os, const RAM& ram)
 	{
