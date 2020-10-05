@@ -9,11 +9,6 @@ RAM::RAM()
 {
 }
 
-void RAM::registerSegmentUpdateSlot(boost::signals2::slot<void (Address, SegmentUpdateData)> slot)
-{
-
-}
-
 void RAM::addSegmentWatcher(const AddressRange& range, boost::signals2::slot<void (Address, SegmentUpdateData)> watcher)
 {
 	auto it = std::find_if(d_signalMap.begin(), d_signalMap.end(), [range](const std::pair<AddressRange, std::shared_ptr<boost::signals2::signal<void (Address, SegmentUpdateData)> > >& item) {

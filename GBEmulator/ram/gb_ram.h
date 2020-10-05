@@ -41,8 +41,6 @@ public:
     void writeByte(Address addr, ByteType val);
     void writeWord(Address addr, WordType val);
 
-	void registerSegmentUpdateSlot(boost::signals2::slot<void (Address, SegmentUpdateData)> slot);
-
 	template<typename Iter>
 	bool copyRangeFromBuffer(Iter begin, Iter end, IT memTarget);
 

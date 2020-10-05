@@ -79,7 +79,6 @@ int main(int argc, char *argv[])
 	RegBank regs;
 
 	SDL_ShowWindow(sdlWindow);
-	ram.registerSegmentUpdateSlot(boost::bind(&SDLScreen::processVRAMUpdate, &screen, _1, _2));	
 
 	// Add a watcher for the BTT found at range 9800-9BFF
 	AddressRange bttRange;

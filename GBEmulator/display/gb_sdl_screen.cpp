@@ -3,14 +3,6 @@
 #include <SDL2/SDL.h>
 #include <boost/log/trivial.hpp>
 
-// bool operator <(const AddressRange& x, const AddressRange& y) {
-//     return std::tie(x.start, x.end) < std::tie(y.start, y.end);
-// }
-
-// bool operator==(const AddressRange& x, const AddressRange& y) {
-//     return std::tie(x.start, x.end) == std::tie(y.start, y.end);
-// }
-
 
 SDLScreen::SDLScreen(RAM* ram, SDL_Window* window)
     : d_ram(ram), d_sdlWindow(window)
@@ -67,45 +59,6 @@ SDLScreen::SDLScreen(RAM* ram, SDL_Window* window)
         }
         BOOST_LOG_TRIVIAL(debug) << "Populated row=" << row << ", col=" << col;
     }
-}
-
-void SDLScreen::loadBackgroundTileMap()
-{
-    // Read the section of RAM determining pointers to tile maps and load them as textures
-    // BTT is at 9800-9BFF
-    
-    // For now, only read index number 1 and load that as an active tile
-    AddressRange range;
-    range.start = 0x9800;
-    range.end = 0x9BFF;
-
-    Address addr = range.start;
-    auto mappedTileNumber = d_ram->readByte(addr + sizeof(ByteType));
-
-    AddressRange tileData;
-    tileData.start = 0x9000 + (sizeof(ByteType)*mappedTileNumber);
-    tileData.end = tileData.start + 16;
-
-    BOOST_LOG_TRIVIAL(debug) << "Registering and creating texture for tile data range, start=" << std::hex << tileData.start << " - " << std::hex << tileData.end;
-    // Register it as an active tile
-    SDL_Texture* texture = SDL_CreateTexture(d_sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 8, 8);
-    auto insertRes = d_activeTileMap.insert(std::pair<AddressRange, SDL_Texture*>(tileData, texture));
-}
-
-
-std::pair<AddressRange, SDL_Texture*> SDLScreen::lookupActiveTile(const Address& address)
-{
-    BOOST_LOG_TRIVIAL(debug) << "Finding " << std::hex << address << " in active on-screen tiles";
-    auto res = std::find_if(d_activeTileMap.begin(), d_activeTileMap.end(), [address](const std::pair<AddressRange, SDL_Texture*>& item) {
-        BOOST_LOG_TRIVIAL(debug) << "Comparing " << std::hex << address << " with " << std::hex << item.first.start << ", " << std::hex << item.first.end;
-        return address >= item.first.start && address <= item.first.end;
-    });
-    
-    if (res != d_activeTileMap.end()) {
-        return *res;
-    }
-    BOOST_LOG_TRIVIAL(debug) << "No active tile found for address " << std::hex << address;
-    return std::pair<AddressRange, SDL_Texture*>();
 }
 
 void SDLScreen::drawScreen()
@@ -180,21 +133,6 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
         return;
     }
 
-    
-
-    void *pixels = NULL;
-    int pitch;
-    /*if (SDL_LockTexture(texture, NULL, &pixels, &pitch) != 0) {
-        BOOST_LOG_TRIVIAL(error) << "Could not lock SDL texture for writing. Not writing for VRAM update to " << addr;
-        return;
-    }*/
-    BOOST_LOG_TRIVIAL(debug) << "Read pixel pitch of: " << pitch;
-
-    uint32_t* pixelPos = (uint32_t*)pixels;
-    uint32_t format;
-    SDL_QueryTexture(texture, &format, NULL, NULL, NULL);
-    auto pixelFormat = SDL_AllocFormat(format);
-
 
     SDL_SetRenderTarget(renderer, texture);
     BOOST_LOG_TRIVIAL(debug) << "any error? " << SDL_GetError();
@@ -221,7 +159,8 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
 
                 SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
                 BOOST_LOG_TRIVIAL(debug) << "Putting point at " << row << ", " << col;
-                SDL_RenderDrawPoint(renderer, row, col);
+                // TODO: Don't know if col and row are actually col and row or should be reversed...
+                SDL_RenderDrawPoint(renderer, col, row);
                 BOOST_LOG_TRIVIAL(debug) << "any error? " << SDL_GetError();
             }
             else {
@@ -261,52 +200,3 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
 
 }
 
-
-void SDLScreen::processVRAMUpdate(Address addr, RAM::SegmentUpdateData data)
-{
-    // Associate the address with an active on-screen tile.
-    // If none is found, then we do nothing.
-    auto lookupResult = lookupActiveTile(addr);
-    if (lookupResult.second == NULL) {
-        BOOST_LOG_TRIVIAL(debug) << "Did not find applicable texture for address " << std::hex << addr;
-        return;
-    }
-
-    // Caught something, so create an SDL Surface to quickly fill it from the address range
-    SDL_Texture* texture = lookupResult.second;
-    void *pixels = NULL;
-    int pitch;
-    if (SDL_LockTexture(texture, NULL, &pixels, &pitch) != 0) {
-        BOOST_LOG_TRIVIAL(error) << "Could not lock SDL texture for writing. Not writing for VRAM update to " << addr;
-        return;
-    }
-
-    BOOST_LOG_TRIVIAL(debug) << "Read pixel pitch of: " << pitch;
-
-
-    // Now, we have to map the updates address value with whatever we need to overwrite in the buffer
-    // TODO: Optimize to specifically modify a portion of the buffer instead of the raw copy?
-    // For now the raw copy of the entire address range should be okay
-    uint32_t* pixelPos = (uint32_t*)pixels;
-    for (Address addr = lookupResult.first.start; addr < lookupResult.first.end; addr += sizeof(ByteType))
-    {
-        BOOST_LOG_TRIVIAL(debug) << "Copying data from address " << std::hex << addr;
-        ByteType memVal = d_ram->readByte(addr);
-
-        uint32_t format;
-        SDL_QueryTexture(texture, &format, NULL, NULL, NULL);
-        auto pixelFormat = SDL_AllocFormat(format);
-        *pixelPos = SDL_MapRGBA(pixelFormat, 255, 255, 255, 0);
-        pixelPos += sizeof(uint32_t);
-    }
-
-    SDL_Rect dstrct;
-    dstrct.x = 0;
-    dstrct.y = 0;
-    dstrct.h = 8;
-    dstrct.w = 8;
-    SDL_UnlockTexture(texture);
-    SDL_SetRenderTarget(d_sdlRenderer, texture);
-    SDL_RenderCopy(d_sdlRenderer, texture, NULL, NULL);
-    SDL_RenderPresent(d_sdlRenderer);
-}
