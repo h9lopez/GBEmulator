@@ -7,15 +7,22 @@
 
 struct DisplayTile {
     SDL_Texture* texture;
-    SDL_Rect pos;
     AddressRange sourceRange;
+    std::map<SDL_Color, std::vector<SDL_Point> > redrawMap;
 
     DisplayTile()
         : texture(NULL) {}
 
     DisplayTile(const DisplayTile& t)
-        : texture(t.texture), pos(t.pos), sourceRange(t.sourceRange) {}
+        : texture(t.texture), sourceRange(t.sourceRange) {}
 
+};
+
+
+
+struct DisplayGridItem {
+    DisplayTile* tile;
+    SDL_Rect* pos;
 };
 
 struct DisplayPalette {
@@ -62,7 +69,7 @@ public:
 
 private:
     std::pair<AddressRange, SDL_Texture*> lookupActiveTile(const Address& address);
-    DisplayTile* findDisplayTile(Address addr, AddressRange range);
+    DisplayGridItem* findDisplayTile(Address addr, AddressRange range);
 
 
 private:
@@ -70,17 +77,14 @@ private:
     SDL_Window* d_sdlWindow;
     SDL_Renderer* d_sdlRenderer;
     DisplayPalette d_colorPalette;
+    std::map<SDL_Color, std::vector<SDL_Point> > d_redrawMap;
 
     AddressRange d_bttRange;
     AddressRange d_wttRange;
     Address d_tptRangeSignedIngress;
     Address d_tptRangeUnsignedIngress;
-    std::vector< std::vector<DisplayTile*> > d_bttLayout;
-    std::vector< std::vector<DisplayTile*> > d_wttLayout;
-
-    // For search optimization purposes
-    std::vector<AddressRange> d_activeRanges;
-    std::map<AddressRange, SDL_Texture*> d_activeTileMap;
+    std::vector< std::vector<DisplayGridItem*> > d_bttLayout;
+    std::vector< std::vector<DisplayGridItem*> > d_wttLayout;
 };
 
 #endif

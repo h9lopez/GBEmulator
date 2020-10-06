@@ -123,6 +123,8 @@ int main(int argc, char *argv[])
 				if (!cpuStall) {
 					core.cycle();
 				}
+
+				screen.drawScreen();
 			}
 			catch (std::runtime_error ex) {
 				cpuStall = true;

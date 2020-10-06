@@ -9,6 +9,11 @@
 namespace GBScreenAPI {
 
 typedef enum {
+    SIGNED_MODE = 0,
+    UNSIGNED_MODE = 1
+} TileAddressingMode;
+
+typedef enum {
     OFF = 0, // 0% aka black
     LOW = 33, // 33% aka dark grey
     MEDIUM = 66, // 66% aka light grey
