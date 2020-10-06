@@ -18,10 +18,43 @@ struct DisplayTile {
 
 };
 
+struct DisplayPalette {
+    // Kinda nasty to have them predefined. Should make it all - including 
+    // declarations config based
+    // TODO: Drive declarations off of config file
+    SDL_Color offVal;
+    SDL_Color lowVal;
+    SDL_Color medVal;
+    SDL_Color highVal;
+
+    DisplayPalette(const SDL_Color& off, const SDL_Color& low, const SDL_Color& med, const SDL_Color& hi) :
+        offVal(off), lowVal(low), medVal(med), highVal(hi) {}
+    
+    DisplayPalette(const DisplayPalette& d) :
+        offVal(d.offVal), lowVal(d.lowVal), medVal(d.medVal), highVal(d.highVal) {}
+
+    SDL_Color mapIntensityToPalette(const GBScreenAPI::GBScreenPixelValue& intensity) const {
+        switch (intensity) {
+            case GBScreenAPI::GBScreenPixelValue::OFF:
+                return offVal;
+            case GBScreenAPI::GBScreenPixelValue::LOW:
+                return lowVal;
+            case GBScreenAPI::GBScreenPixelValue::MEDIUM:
+                return medVal;
+            case GBScreenAPI::GBScreenPixelValue::HIGH:
+                return highVal;
+            default:
+                BOOST_LOG_TRIVIAL(warning) << "Palette color matching intensity " 
+                        << intensity << " not found. Using OFF value";
+                return offVal;
+        }
+    }
+};
+
 class SDLScreen
 {
 public:
-    SDLScreen(RAM* ram, SDL_Window* window);
+    SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette);
     void drawScreen();
     void loadBackgroundTileMap();
     void processVRAMUpdate(Address addr, RAM::SegmentUpdateData data);
@@ -36,6 +69,7 @@ private:
     RAM* d_ram;
     SDL_Window* d_sdlWindow;
     SDL_Renderer* d_sdlRenderer;
+    DisplayPalette d_colorPalette;
 
     AddressRange d_bttRange;
     AddressRange d_wttRange;

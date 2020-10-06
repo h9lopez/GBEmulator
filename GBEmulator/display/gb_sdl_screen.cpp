@@ -1,16 +1,25 @@
-#include "gb_sdl_screen.h"
+#include <gb_sdl_screen.h>
+#include <gb_screen_api.h>
 
 #include <SDL2/SDL.h>
 #include <boost/log/trivial.hpp>
+#include <gb_typeutils.h>
 
+GBScreenAPI::GBScreenPixelValue convertBitPairToPixelIntensityValue(uint8_t bit1, uint8_t bit2) {
+    static const std::vector< std::vector<GBScreenAPI::GBScreenPixelValue> > _bitPairMap = {
+        { GBScreenAPI::GBScreenPixelValue::OFF , GBScreenAPI::GBScreenPixelValue::MEDIUM},
+        { GBScreenAPI::GBScreenPixelValue::LOW, GBScreenAPI::GBScreenPixelValue::HIGH}
+    };
 
-SDLScreen::SDLScreen(RAM* ram, SDL_Window* window)
-    : d_ram(ram), d_sdlWindow(window)
+    return _bitPairMap[bit1][bit2];
+}
+
+SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
+    : d_ram(ram), d_sdlWindow(window), d_colorPalette(palette)
 {
-
     d_sdlRenderer = SDL_CreateRenderer(d_sdlWindow, -1, SDL_RendererFlags::SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
-    BOOST_LOG_TRIVIAL(debug) << "any error? " << SDL_GetError();
 
+    // Resize the 2d vector for us to fit all of our active tiles in it
     d_bttLayout.resize(32);
     d_wttLayout.resize(32);
     for (auto i = 0; i < 32; ++i) {
@@ -26,38 +35,38 @@ SDLScreen::SDLScreen(RAM* ram, SDL_Window* window)
     d_tptRangeSignedIngress = 0x9000;
     d_tptRangeUnsignedIngress = 0x8000;
 
-    int row = 0;
-    int col = 0;
+    int x = 0;
+    int y = 0;
+    SDL_Rect pos;
+    AddressRange range;
+
     for (auto i = d_bttRange.start; i < d_bttRange.end; i += sizeof(ByteType)) {
-        BOOST_LOG_TRIVIAL(debug) << "Creating SDLTexture for BTT tile starting at " << std::hex << i;
         DisplayTile* tile = new DisplayTile();
-        SDL_Rect pos;
-        AddressRange range;
+
+        // Set the 1-byte long range as to where each tile lives.
         range.start = i;
         range.end = i + sizeof(ByteType);
 
+        // Every tile occupies 8x8 boxes, and we position them in a grid determined by x, y
         pos.h = 8;
         pos.w = 8;
-        pos.x = col * 8;
-        pos.y = row * 8;
+        pos.x = y * 8;
+        pos.y = x * 8;
 
+        // Create the SDL texture and insert it into the map
         tile->texture = SDL_CreateTexture(d_sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 8, 8);
         tile->pos = pos;
-        d_bttLayout[row][col] = tile;
-        BOOST_LOG_TRIVIAL(debug) << "Laid out new texture for displaytile at:\n"
-            << "\tsourceRange: 0x" << std::hex << tile->sourceRange.start << " - " << std::hex << tile->sourceRange.end << "\n"
-            << "\tpos: " << std::dec << pos.x << ", " << pos.y;
+        d_bttLayout[x][y] = tile;
 
-        if (d_bttLayout[row][col]->texture == NULL ) {
-            BOOST_LOG_TRIVIAL(debug) << "INVALID texture found!!";
+        if (d_bttLayout[x][y]->texture == NULL ) {
+            BOOST_LOG_TRIVIAL(error) << "SDL_Texture not created on Tile Table setup! x/y: " << x << "/" << y;
         }
 
-        row++;
-        if (row >= 32) {
-            row = 0;
-            col++;
+        x++;
+        if (x >= 32) {
+            x = 0;
+            y++;
         }
-        BOOST_LOG_TRIVIAL(debug) << "Populated row=" << row << ", col=" << col;
     }
 }
 
@@ -97,6 +106,42 @@ DisplayTile* SDLScreen::findDisplayTile(Address addr, AddressRange range) {
     return NULL;
 }
 
+std::shared_ptr<std::vector<std::tuple<int, int, SDL_Color> > > decodeGBTileRow(WordType word, int rowNum, const DisplayPalette& palette)
+{
+    // Let's allocate the vector memory here and pass it on as a shared_ptr
+    auto pixelList = std::make_shared<std::vector<std::tuple<int, int, SDL_Color> > >();
+
+    // Let's convert it to a word register so we can have access to high and low params
+    WordRegister rowData;
+    rowData.word = word;
+
+    ByteType& hi = rowData.hi;
+    ByteType& lo = rowData.lo;
+
+    int x = 0;
+    for (auto i = 0; i < sizeof(ByteType)*8; ++i) {
+        auto nextHiVal = hi & 0x1;
+        auto nextLoVal = lo & 0x1;
+        // Decode the hi,lo pair of bits
+        auto gbPixel = convertBitPairToPixelIntensityValue(nextHiVal, nextLoVal);
+        
+        // Convert it to a color from our attached palette
+        auto gbPixelColor = palette.mapIntensityToPalette(gbPixel);
+
+        // Now, where does this pixel actually go on our screen?
+        pixelList->push_back(std::make_tuple(x, rowNum, gbPixelColor));        
+
+        // Next pair
+        hi = hi >> 1;
+        lo = lo >> 1;
+        ++x;
+    }
+    return pixelList;
+}
+
+
+
+
 void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
 {
     // A value in the BTT has changed, so we need to free an existing resource
@@ -107,96 +152,45 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
 
     AddressRange newTileData;
     int tileNumber = (int)d_ram->readByte(addr);
-    BOOST_LOG_TRIVIAL(debug) << "Looking up tile number " << tileNumber;
     newTileData.start = d_tptRangeSignedIngress + (tileNumber * 16);
     newTileData.end = newTileData.start + 16;
-    BOOST_LOG_TRIVIAL(debug) << "Determined new tile data to be at: " << std::hex << newTileData.start << ", " << std::hex << newTileData.end;
+    BOOST_LOG_TRIVIAL(debug) << "Determined new tile data to be at: " << std::hex << newTileData.start << ", " << std::hex << newTileData.end << " for tile number " << tileNumber;
 
     DisplayTile* tile = findDisplayTile(addr, d_bttRange);
     if (tile == NULL) {
         BOOST_LOG_TRIVIAL(error) << "NO display tile exists for address " << std::hex << addr;
         return;
     }
-    BOOST_LOG_TRIVIAL(debug) << "Found display tile for address range " << std::hex << tile->sourceRange.start << ", " << std::hex << tile->sourceRange.end;
 
-
-    BOOST_LOG_TRIVIAL(debug) << "Changing source range of display tile from " 
-                << std::hex << tile->sourceRange.start << " - " << std::hex << tile->sourceRange.end
-                << " to " 
-                << std::hex << newTileData.start << " - " << std::hex << newTileData.end;
     tile->sourceRange = newTileData;
 
 
     SDL_Texture *texture = tile->texture;
-    if (tile->texture == NULL) { 
-        BOOST_LOG_TRIVIAL(error) << "INVALID texture within DisplayTile";
-        return;
-    }
-
-
     SDL_SetRenderTarget(renderer, texture);
-    BOOST_LOG_TRIVIAL(debug) << "any error? " << SDL_GetError();
 
-    int totalPixelsPainted = 0;
     int row = 0;
-    int col = 0;
     for (Address addr = tile->sourceRange.start; addr < tile->sourceRange.end; addr += sizeof(WordType))
     {
         WordType memWord = d_ram->readWord(addr);
-        // Construct a line from the two bytes in RAM then put in texture
-        size_t i = 0;
-        for (i = 0; i < sizeof(WordType)*4; ++i) {
-            auto ramPixelValue = memWord & 0x3;
+        auto rowPixelList = decodeGBTileRow(memWord, row, d_colorPalette);
 
-            SDL_Color color;
-            if (ramPixelValue > 0) {
-                // White
-                color.r = 255;
-                color.g = 255;
-                color.b = 255;
-                color.a = 0;
-                BOOST_LOG_TRIVIAL(debug) << "ACTIVE PIXEL";
-
-                SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
-                BOOST_LOG_TRIVIAL(debug) << "Putting point at " << row << ", " << col;
-                // TODO: Don't know if col and row are actually col and row or should be reversed...
-                SDL_RenderDrawPoint(renderer, col, row);
-                BOOST_LOG_TRIVIAL(debug) << "any error? " << SDL_GetError();
-            }
-            else {
-                color.r = 0;
-                color.g = 0;
-                color.b = 0;
-                color.a = 0;
-
-            }
-
-
-
-            col++;
-            if (col >= 8) {
-                col = 0;
-                row++;
-            }
-            memWord = memWord >> 2;
-            totalPixelsPainted++;
+        // Go through the pixel list an dupdate
+        for (auto updatePixel : *rowPixelList)
+        {
+            auto [drawX, drawY, drawColor] = updatePixel;
+            SDL_SetRenderDrawColor(renderer, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
+            SDL_RenderDrawPoint(renderer, drawX, drawY);
         }
+        
+
+        // Increment..
+        ++row;
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "Rendering texture at " << tile->pos.x << ", " << tile->pos.y;
-    //SDL_UnlockTexture(texture);
-
     SDL_SetRenderTarget(renderer, NULL);
-    BOOST_LOG_TRIVIAL(debug) << "any error? srt" << SDL_GetError();
 
     SDL_RenderCopy(renderer, texture, NULL, &tile->pos);
-    BOOST_LOG_TRIVIAL(debug) << "any error? rcp" << SDL_GetError();
 
     SDL_RenderPresent(renderer);
-    BOOST_LOG_TRIVIAL(debug) << "any error? rp" << SDL_GetError();
-
-
-    BOOST_LOG_TRIVIAL(debug) << "Went through " << std::dec << totalPixelsPainted << " pixels";
-
 }
 

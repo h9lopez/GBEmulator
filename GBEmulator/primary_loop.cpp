@@ -73,9 +73,18 @@ int main(int argc, char *argv[])
 
 	// Load ROM into memspace
 
+	// Initialize a default display palette for us to use
+	// TODO: Load display palette from config
+	DisplayPalette screenPalette(
+		SDL_Color{.r = 0, .g = 0, .b = 0},
+		SDL_Color{.r = 63, .g = 63, .b = 63},
+		SDL_Color{.r = 147, .g = 147, .b = 147},
+		SDL_Color{.r = 255, .g = 255, .b = 255}
+	);
+
 	auto sdlWindow = localSDLInit();
 	RAM ram;
-	SDLScreen screen(&ram, sdlWindow);
+	SDLScreen screen(&ram, sdlWindow, screenPalette);
 	RegBank regs;
 
 	SDL_ShowWindow(sdlWindow);

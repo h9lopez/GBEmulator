@@ -4,7 +4,7 @@
 #include <display/gb_screen_api.h>
 #include <ram/gb_ram.h>
 
-class ASCIIScreen : public IDisplay
+class ASCIIScreen : public GBScreenAPI::IDisplay
 {
     public:
         ASCIIScreen(RAM &ram);
