@@ -4,10 +4,32 @@
 #include <SDL2/SDL.h>
 #include <boost/log/trivial.hpp>
 #include <gb_typeutils.h>
+#include <addressrange.h>
+#include <boost/range/iterator_range.hpp>
 
-const bool operator<(const SDL_Color& a, const SDL_Color& b) {
-    return std::tie(a.r, a.g, a.b, a.a) < std::tie(b.r, b.g, b.b, b.a);
+#define GB_TILETABLE_WIDTH 32
+#define GB_TILETABLE_HEIGHT 32
+#define GB_TILE_PIXEL_WIDTH 8
+#define GB_TILE_PIXEL_HEIGHT 8
+
+namespace {
+    // Helper functions
+    ActivePalette decodePaletteData(ByteType value)
+    {
+        ActivePalette res;
+        auto rawBitset = std::bitset<BYTETYPE_SIZE>(value);
+        ByteType tmp = rawBitset[1];
+        res.color0 = static_cast<GBScreenAPI::GBScreenPixelValue>((tmp << 1) | rawBitset[0]);
+        tmp = rawBitset[3];
+        res.color1 = static_cast<GBScreenAPI::GBScreenPixelValue>((tmp << 1) | rawBitset[2]);
+        tmp = rawBitset[5];
+        res.color2 = static_cast<GBScreenAPI::GBScreenPixelValue>((tmp << 1) | rawBitset[4]);
+        tmp = rawBitset[7];
+        res.color3 = static_cast<GBScreenAPI::GBScreenPixelValue>((tmp << 1) | rawBitset[6]);
+        return res;
+    }
 }
+
 
 GBScreenAPI::GBScreenPixelValue convertBitPairToPixelIntensityValue(uint8_t bit1, uint8_t bit2) {
     static const std::vector< std::vector<GBScreenAPI::GBScreenPixelValue> > _bitPairMap = {
@@ -21,14 +43,16 @@ GBScreenAPI::GBScreenPixelValue convertBitPairToPixelIntensityValue(uint8_t bit1
 SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
     : d_ram(ram), d_sdlWindow(window), d_colorPalette(palette)
 {
+    SDL_Color_Comp cmp;
+    d_redrawMap = std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp>(cmp);
     d_sdlRenderer = SDL_CreateRenderer(d_sdlWindow, -1, SDL_RendererFlags::SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
     // Resize the 2d vector for us to fit all of our active tiles in it
-    d_bttLayout.resize(32);
-    d_wttLayout.resize(32);
-    for (auto i = 0; i < 32; ++i) {
-        d_bttLayout[i].resize(32);
-        d_wttLayout[i].resize(32);
+    d_bttLayout.resize(GB_TILETABLE_HEIGHT);
+    d_wttLayout.resize(GB_TILETABLE_HEIGHT);
+    for (auto i = 0; i < GB_TILETABLE_HEIGHT; ++i) {
+        d_bttLayout[i].resize(GB_TILETABLE_WIDTH);
+        d_wttLayout[i].resize(GB_TILETABLE_WIDTH);
     }
 
     // Populate BTT and WTT layouts
@@ -39,29 +63,38 @@ SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
     d_tptRangeSignedIngress = 0x9000;
     d_tptRangeUnsignedIngress = 0x8000;
 
+    _initTileTable(d_bttRange, d_bttLayout, d_bttLookupGrid);
+    _initTileTable(d_wttRange, d_wttLayout, d_wttLookupGrid);
+}
+
+void SDLScreen::_initTileTable(const AddressRange& addrRange, 
+                                std::vector< std::vector<DisplayGridItem*> >&layoutTable,
+                                std::map<Address, DisplayGridItem*>& lookupMap )
+{
     int x = 0;
     int y = 0;
-    for (auto i = d_bttRange.start; i < d_bttRange.end; i += sizeof(ByteType)) {
+    for (auto i = addrRange.start; i <= addrRange.end; i += sizeof(ByteType)) {
         DisplayTile* tile = new DisplayTile();
 
         // Create the SDL texture and insert it into the map
-        tile->texture = SDL_CreateTexture(d_sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, 8, 8);
+        tile->texture = SDL_CreateTexture(d_sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, GB_TILE_PIXEL_WIDTH, GB_TILE_PIXEL_HEIGHT);
 
-        d_bttLayout[x][y] = new DisplayGridItem{.tile = tile, .pos = new SDL_Rect{.h = 8, .w = 8, .x = x*8, .y = y*8} };
+        layoutTable[x][y] = new DisplayGridItem{.tile = tile, .pos = new SDL_Rect{.x = x*GB_TILE_PIXEL_WIDTH, .y = y*GB_TILE_PIXEL_HEIGHT, .w = GB_TILE_PIXEL_WIDTH, .h = GB_TILE_PIXEL_HEIGHT} };
+        lookupMap.insert(std::pair<Address, DisplayGridItem*>(i, d_bttLayout[x][y]));
 
-        if (d_bttLayout[x][y]->tile->texture == NULL ) {
+        if (layoutTable[x][y]->tile->texture == NULL ) {
             BOOST_LOG_TRIVIAL(error) << "SDL_Texture not created on Tile Table setup! x/y: " << x << "/" << y;
         }
 
         x++;
-        if (x >= 32) {
+        if (x >= GB_TILETABLE_WIDTH) {
             x = 0;
             y++;
         }
     }
 }
 
-void SDLScreen::drawScreen()
+void SDLScreen::drawScreen() const
 {
     // Go through each of our active tiles and redraw their update maps
     BOOST_LOG_TRIVIAL(debug) << "Starting screen draw...";
@@ -73,7 +106,7 @@ void SDLScreen::drawScreen()
     )
     {
         // Wow this sucks time-wise
-        auto gridItem = findDisplayTile(tileStart, d_bttRange);
+        auto gridItem = findDisplayTile(tileStart);
         auto tile = gridItem->tile;
 
         // Sanity check the tile. If it's bad or untouched, then don't render it.
@@ -107,33 +140,13 @@ void SDLScreen::drawScreen()
 //     }
 // }
 
-DisplayGridItem* SDLScreen::findDisplayTile(Address addr, AddressRange range) {
-    // Calculate for now.. Cache later
-
-    int row = 0;
-    int col = 0;
-    // TODO: Assumes BTT
-    Address properStart = d_bttRange.start;
-    for (auto i = range.start; i < range.end; ++i)
-    {
-        // For each unit, it takes up one byte each
-        // Use that fact to calculate the address based on row&col
-        if (addr >= properStart && addr < properStart+sizeof(ByteType)) {
-            // BOOST_LOG_TRIVIAL(debug) << "Found display tile match for addr " << std::hex << addr << " at " << std::dec << row << ", " << col;
-            return d_bttLayout[row][col];
-        }
-
-        properStart += sizeof(ByteType);
-        row ++;
-
-        if (row >= 32) {
-            row = 0;
-            col++;
-        }   
+DisplayGridItem* SDLScreen::findDisplayTile(Address addr) const {
+    auto gridItemIt = d_bttLookupGrid.find(addr);
+    if (gridItemIt == d_bttLookupGrid.end()) {
+        return NULL;
     }
 
-
-    return NULL;
+    return gridItemIt->second;
 }
 
 std::shared_ptr<std::vector<std::tuple<SDL_Point, SDL_Color> > > decodeGBTileRow(WordType word, int rowNum, const DisplayPalette& palette)
@@ -171,6 +184,77 @@ std::shared_ptr<std::vector<std::tuple<SDL_Point, SDL_Color> > > decodeGBTileRow
 }
 
 
+void SDLScreen::processWTTUpdate(Address addr, RAM::SegmentUpdateData data)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Processing WTT update for address " << std::hex  << addr;
+}
+
+void SDLScreen::processBGPUpdate(Address addr, RAM::SegmentUpdateData data)
+{
+    BOOST_LOG_TRIVIAL(info) << "Update at BGP port - updating global display palette.";
+        BOOST_LOG_TRIVIAL(debug) << "Old BGP color0=" << d_backgroundPalette.color0
+                << ", color1=" << d_backgroundPalette.color1
+                << ", color2=" << d_backgroundPalette.color2
+                << ", color3=" << d_backgroundPalette.color3;
+
+    // Decode the data and construct the display palette object to override our instance var
+    d_backgroundPalette = decodePaletteData(data.byte);
+
+    BOOST_LOG_TRIVIAL(debug) << "New BGP color0=" << d_backgroundPalette.color0
+                << ", color1=" << d_backgroundPalette.color1
+                << ", color2=" << d_backgroundPalette.color2
+                << ", color3=" << d_backgroundPalette.color3;
+}
+
+void SDLScreen::processOBP0Update(Address addr, RAM::SegmentUpdateData data)
+{
+    BOOST_LOG_TRIVIAL(info) << "Update at OBP0 port - updating global display palette.";
+        BOOST_LOG_TRIVIAL(debug) << "Old OBP0 color0=" << d_backgroundPalette.color0
+                << ", color1=" << d_backgroundPalette.color1
+                << ", color2=" << d_backgroundPalette.color2
+                << ", color3=" << d_backgroundPalette.color3;
+
+    // Decode the data and construct the display palette object to override our instance var
+    d_spritePalette0 = decodePaletteData(data.byte);
+
+    BOOST_LOG_TRIVIAL(debug) << "New OBP0 color0=" << d_backgroundPalette.color0
+                << ", color1=" << d_backgroundPalette.color1
+                << ", color2=" << d_backgroundPalette.color2
+                << ", color3=" << d_backgroundPalette.color3;
+}
+
+
+void SDLScreen::processOBP1Update(Address addr, RAM::SegmentUpdateData data)
+{
+    BOOST_LOG_TRIVIAL(info) << "Update at OBP1 port - updating global display palette.";
+        BOOST_LOG_TRIVIAL(debug) << "Old OBP1 color0=" << d_backgroundPalette.color0
+                << ", color1=" << d_backgroundPalette.color1
+                << ", color2=" << d_backgroundPalette.color2
+                << ", color3=" << d_backgroundPalette.color3;
+
+    // Decode the data and construct the display palette object to override our instance var
+    d_spritePalette1 = decodePaletteData(data.byte);
+
+    BOOST_LOG_TRIVIAL(debug) << "New OBP1 color0=" << d_backgroundPalette.color0
+                << ", color1=" << d_backgroundPalette.color1
+                << ", color2=" << d_backgroundPalette.color2
+                << ", color3=" << d_backgroundPalette.color3;
+}
+
+void SDLScreen::processLCDCUpdate(Address addr, RAM::SegmentUpdateData data)
+{
+    GBScreenAPI::LCDCState newState(data.byte);
+    BOOST_LOG_TRIVIAL(info) << "Updated LCDC. lcdOn=" << newState.lcdOn 
+        << ", windowOn=" << newState.windowOn
+        << ", spritesOn=" << newState.spritesOn
+        << ", backgroundOn=" << newState.backgroundOn
+        << ", spriteDimension=(w=" << newState.spriteDimension.first << ", h=" << newState.spriteDimension.second << ")"
+        << ", backgroundTileMapSelect=(start=" << std::hex << newState.backgroundTileMapSelect.start << ", end=" << std::hex << newState.backgroundTileMapSelect.end << ")"
+        << ", windowTileMapSelect=(start=" << std::hex << newState.windowTileMapSelect.start << ", end=" << std::hex << newState.windowTileMapSelect.end << ")"
+        << ", tileDataSelect=(start=" << std::hex << newState.tileDataSelect.start << ", end=" << std::hex << newState.tileDataSelect.end << ")";
+    d_lcdcState = newState;
+}
+
 
 
 void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
@@ -182,12 +266,12 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
     auto renderer = d_sdlRenderer;
 
     AddressRange newTileData;
-    int tileNumber = (int)d_ram->readByte(addr);
+    int tileNumber = (int)data.byte;
     newTileData.start = d_tptRangeSignedIngress + (tileNumber * 16);
     newTileData.end = newTileData.start + 16;
     BOOST_LOG_TRIVIAL(debug) << "Determined new tile data to be at: " << std::hex << newTileData.start << ", " << std::hex << newTileData.end << " for tile number " << tileNumber;
 
-    auto gridItem = findDisplayTile(addr, d_bttRange);
+    auto gridItem = findDisplayTile(addr);
     auto tile = gridItem->tile;
     if (tile == NULL) {
         BOOST_LOG_TRIVIAL(error) << "NO display tile exists for address " << std::hex << addr;
@@ -211,9 +295,6 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
         {
             auto [drawPoint, drawColor] = updatePixel;
 
-            //SDL_SetRenderDrawColor(renderer, drawColor.r, drawColor.g, drawColor.b, drawColor.a);
-            //SDL_RenderDrawPoint(renderer, drawX, drawY);
-
             // Add to redraw list for tile
             tile->redrawMap[drawColor].push_back(drawPoint);
             
@@ -222,10 +303,5 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
         ++row;
     }
 
-    //SDL_SetRenderTarget(renderer, NULL);
-
-    //SDL_RenderCopy(renderer, texture, NULL, &tile->pos);
-
-    //SDL_RenderPresent(renderer);
 }
 

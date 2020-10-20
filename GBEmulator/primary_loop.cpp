@@ -1,13 +1,22 @@
+// STL includes
 #include <iostream>
+#include <functional>
+#include <fstream>
+#include <thread>
+
+// GB  includes
 #include <cpu/CPUCore.h>
 #include <display/gb_ascii_screen.h>
 #include <display/gb_sdl_screen.h>
 #include <romloader/gb_rom.h>
-#include <fstream>
+
+// SDL
 #include <SDL2/SDL.h>
 
-
+// BOOST
+#include <boost/bind/placeholders.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost/cxx11_char_types.hpp>
 #include <boost/program_options.hpp>
 using namespace std;
 
@@ -48,8 +57,8 @@ int main(int argc, char *argv[])
 	// Load command line args
 	boost::program_options::options_description description("Allowed options");
 	description.add_options()
-				("romPath", boost::program_options::value<string>(), "Set startup ROM path")
-				("memDumpPath", boost::program_options::value<string>(), "If set, will dump memory state post-execution of ROM completion.")
+				("romPath", boost::program_options::value<std::string>(), "Set startup ROM path")
+				("memDumpPath", boost::program_options::value<std::string>(), "If set, will dump memory state post-execution of ROM completion.")
 	;
 
 	boost::program_options::variables_map vm;
@@ -90,10 +99,19 @@ int main(int argc, char *argv[])
 	SDL_ShowWindow(sdlWindow);
 
 	// Add a watcher for the BTT found at range 9800-9BFF
-	AddressRange bttRange;
-	bttRange.start = 0x9800;
-	bttRange.end = 0x9BFF;
-	ram.addSegmentWatcher(bttRange, boost::bind(&SDLScreen::processBTTUpdate, &screen, _1, _2));
+	AddressRange bttRange(0x9800, 0x9BFF);
+	AddressRange wttRange(0x9C00, 0x9FFF);
+	AddressRange bgpRange(0xFF47, 0xFF47);
+	AddressRange ob0pRange(0xFF48, 0xFF48);
+	AddressRange ob1pRange(0xFF49, 0xFF49);
+	AddressRange lcdcRange(0xFF40, 0xFF40);
+
+	ram.addSegmentWatcher(bttRange, boost::bind(&SDLScreen::processBTTUpdate, &screen, boost::placeholders::_1, boost::placeholders::_2));
+	ram.addSegmentWatcher(wttRange, boost::bind(&SDLScreen::processWTTUpdate, &screen, boost::placeholders::_1, boost::placeholders::_2));
+	ram.addSegmentWatcher(bgpRange, boost::bind(&SDLScreen::processBGPUpdate, &screen, boost::placeholders::_1, boost::placeholders::_2));
+	ram.addSegmentWatcher(ob0pRange, boost::bind(&SDLScreen::processOBP0Update, &screen, boost::placeholders::_1, boost::placeholders::_2));
+	ram.addSegmentWatcher(ob1pRange, boost::bind(&SDLScreen::processOBP1Update, &screen, boost::placeholders::_1, boost::placeholders::_2));
+	ram.addSegmentWatcher(lcdcRange, boost::bind(&SDLScreen::processLCDCUpdate, &screen, boost::placeholders::_1, boost::placeholders::_2));
 
 	BOOST_LOG_TRIVIAL(info) << "Attempting to load boot ROM";
 	if (ROMLoader::fromFile(bootROM, ram))
@@ -106,47 +124,44 @@ int main(int argc, char *argv[])
 
 	Core::CPUCore core(ram, regs);
 
-	BOOST_LOG_TRIVIAL(info) << "Regular opcode map: ";
-	//Core::CPUCore::reportOpcodeCoverage(INSTR_META, core.getPrimaryOpcodes());
-	BOOST_LOG_TRIVIAL(info) << "CB opcode map: ";
-	//Core::CPUCore::reportOpcodeCoverage(INSTR_CB_META, core.getSecondaryOpcodes());
 
-	BOOST_LOG_TRIVIAL(info) << "Starting ROM: ";
-	try
-	{
 
-		SDL_Event ev;
-		bool quit = false;
-		bool cpuStall = false;
-		while (!quit) {
+	std::thread cpuThread([&core]() {
+		bool cpuQuit = false;
+		while (!cpuQuit) {
 			try {
-				if (!cpuStall) {
-					core.cycle();
-				}
-
-				screen.drawScreen();
+				core.cycle();
 			}
 			catch (std::runtime_error ex) {
-				cpuStall = true;
-			}
-
-			while (SDL_PollEvent(&ev)){
-				if (ev.type == SDL_QUIT){
-					quit = true;
-				}
-				if (ev.type == SDL_KEYDOWN){
-				}
-				if (ev.type == SDL_MOUSEBUTTONDOWN){
-				}
+				cpuQuit = true;
 			}
 		}
-	}
-	catch (std::runtime_error ex)
-	{
-		BOOST_LOG_TRIVIAL(fatal) << "Caught error and exiting " << ex.what();
+	});
+	cpuThread.detach();
+	
+
+	bool quitScreen = false;
+	SDL_Event ev; 
+	while (!quitScreen) {
+		while (SDL_PollEvent(&ev)) {
+			if (ev.type == SDL_QUIT){
+				quitScreen = true;
+			}
+			if (ev.type == SDL_KEYDOWN){
+			}
+			if (ev.type == SDL_MOUSEBUTTONDOWN){
+			}
+
+			screen.drawScreen();
+			SDL_Delay(16);
+		}
 	}
 
 
+	//BOOST_LOG_TRIVIAL(info) << "Regular opcode map: ";
+	//Core::CPUCore::reportOpcodeCoverage(INSTR_META, core.getPrimaryOpcodes());
+	//BOOST_LOG_TRIVIAL(info) << "CB opcode map: ";
+	//Core::CPUCore::reportOpcodeCoverage(INSTR_CB_META, core.getSecondaryOpcodes());
 
 	SDL_DestroyWindow(sdlWindow);
 

@@ -2,6 +2,7 @@
 #define INCLUDED_GB_RAM
 
 #include <utils/gb_typeutils.h>
+#include <utils/addressrange.h>
 #include <array>
 #include <iterator>
 #include <ostream>
@@ -30,7 +31,6 @@ public:
 	RAM();
 
 	void addSegmentWatcher(const AddressRange& range, boost::signals2::slot<void (Address, SegmentUpdateData)> watcher);
-
 
 	// helper function for debugging
 	void copyCurrentState(RAM& dest) const;

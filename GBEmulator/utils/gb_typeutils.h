@@ -25,31 +25,6 @@ static const int BYTETYPE_SIZE = 8;
 static const int WORDTYPE_SIZE = BYTETYPE_SIZE * 2;
 
 typedef uint16_t Address;
-struct _AddressRange {
-	Address start;
-	Address end;
-
-	_AddressRange()
-		: start(0x0), end(0x0) {}
-		
-	_AddressRange(Address start, Address end)
-		: start(start), end(start) {}
-
-	_AddressRange(const _AddressRange& r) 
-		: start(r.start), end(r.end) {}
-
-	bool operator <(const _AddressRange& y) const {
-		return std::tie(start, end) < std::tie(y.start, y.end);
-	}
-
-	bool operator==(const _AddressRange& y) const {
-		return std::tie(start, end) == std::tie(y.start, y.end);
-	}
-
-
-};
-
-typedef _AddressRange AddressRange;
 
 
 
