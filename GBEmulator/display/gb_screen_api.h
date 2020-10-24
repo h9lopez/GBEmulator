@@ -10,6 +10,25 @@
 
 namespace GBScreenAPI {
 
+typedef enum {
+    SIGNED_MODE = 0,
+    UNSIGNED_MODE = 1
+} TileDataAddressingMode;
+
+typedef enum {
+    WINDOW,
+    BACKGROUND,
+    UNDEFINED
+} RenderLayer;
+
+typedef struct
+{
+    AddressRange range;
+    Address ingress;
+    TileDataAddressingMode addressingMode;
+} TileDataRegionInfo;
+
+
 struct LCDCState {
     bool lcdOn;
     bool windowOn;
@@ -72,10 +91,7 @@ struct LCDCState {
     }
 };
 
-typedef enum {
-    SIGNED_MODE = 0,
-    UNSIGNED_MODE = 1
-} TileAddressingMode;
+
 
 typedef enum {
     OFF = 0b11, // 0% aka black

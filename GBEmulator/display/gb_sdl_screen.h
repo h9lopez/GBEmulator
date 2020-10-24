@@ -4,30 +4,16 @@
 #include <display/gb_screen_api.h>
 #include <ram/gb_ram.h>
 #include <SDL2/SDL.h>
+#include <tuple>
+#include <gb_screen_layer.h>
+#include <gb_screen_layerrenderer.h>
+#include <gb_screen_displaytile.h>
+#include <gb_screen_displaygriditem.h
 
 struct SDL_Color_Comp : public std::binary_function<SDL_Color, SDL_Color, bool> {
     bool operator()(const SDL_Color& a, const SDL_Color& b) const { 
         return std::tie(a.r, a.g, a.b, a.a) < std::tie(b.r, b.g, b.b, b.a);
     }
-};
-
-struct DisplayTile {
-    SDL_Texture* texture;
-    AddressRange sourceRange;
-    std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp > redrawMap;
-
-    DisplayTile()
-        : texture(NULL) {}
-
-    DisplayTile(const DisplayTile& t)
-        : texture(t.texture), sourceRange(t.sourceRange) {}
-
-};
-
-
-struct DisplayGridItem {
-    DisplayTile* tile;
-    SDL_Rect* pos;
 };
 
 struct DisplayPalette {
@@ -82,28 +68,39 @@ struct ActivePalette {
     {}
 };
 
+
 class SDLScreen
 {
 public:
+
+    typedef boost::signals2::signal<void(bool)> ScreenPowerFlippedSignal;
+    typedef boost::signals2::signal<void(bool)> ScreenPowerFlippedSlot;
+    typedef std::map<Address, DisplayGridItem*> TileTable;
+
     SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette);
     void drawScreen() const;
     void loadBackgroundTileMap();
+
+    // Event handlers
     void processVRAMUpdate(Address addr, RAM::SegmentUpdateData data);
     void processBTTUpdate(Address addr, RAM::SegmentUpdateData data);
     void processWTTUpdate(Address addr, RAM::SegmentUpdateData data);
-
     // attached to FF47 IO port
     void processBGPUpdate(Address addr, RAM::SegmentUpdateData data);
+    // FF48
     void processOBP0Update(Address addr, RAM::SegmentUpdateData data);
+    // FF49
     void processOBP1Update(Address addr, RAM::SegmentUpdateData data);
     void processLCDCUpdate(Address addr, RAM::SegmentUpdateData data);
 
+    // Signals
+    void watchScreenPower(ScreenPowerFlippedSlot watcher);
 private:
     std::pair<AddressRange, SDL_Texture*> lookupActiveTile(const Address& address);
     DisplayGridItem* findDisplayTile(Address addr) const;
     void _initTileTable(const AddressRange& addrRange, 
                         std::vector< std::vector<DisplayGridItem*> >&layoutTable,
-                        std::map<Address, DisplayGridItem*>& lookupMap );
+                        TileTable& lookupMap );
 
 
 private:
@@ -113,15 +110,17 @@ private:
     DisplayPalette d_colorPalette;
     std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp> d_redrawMap;
 
-    AddressRange d_bttRange;
-    AddressRange d_wttRange;
-    Address d_tptRangeSignedIngress;
-    Address d_tptRangeUnsignedIngress;
-    std::vector< std::vector<DisplayGridItem*> > d_bttLayout;
-    std::vector< std::vector<DisplayGridItem*> > d_wttLayout;
+    // External signals
+    ScreenPowerFlippedSignal d_powerFlippedSignal;
 
-    std::map<Address, DisplayGridItem*> d_bttLookupGrid;
-    std::map<Address, DisplayGridItem*> d_wttLookupGrid;
+    AddressRange d_upperTileMapRange;
+    AddressRange d_lowerTileMapRange;
+
+    std::vector< std::vector<DisplayGridItem*> > d_upperTileMap;
+    std::vector< std::vector<DisplayGridItem*> > d_lowerTileMap;
+
+    TileTable d_upperTileMapLookupGrid;
+    TileTable d_lowerTileMapLookupGrid;
 
     // Active palettes
     ActivePalette d_backgroundPalette;
@@ -130,6 +129,11 @@ private:
 
     // Active LCDC State
     GBScreenAPI::LCDCState d_lcdcState;
+
+    // Layers
+    LayerRenderer d_layerRenderer;
+    Layer d_backgroundLayer;
+    Layer d_windowLayer;
 };
 
 #endif
