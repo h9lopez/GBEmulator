@@ -18,6 +18,7 @@
 #include <boost/log/trivial.hpp>
 #include <boost/cxx11_char_types.hpp>
 #include <boost/program_options.hpp>
+#include <boost/exception/all.hpp>
 using namespace std;
 
 // SDL consts
@@ -50,7 +51,7 @@ SDL_Window* localSDLInit()
 
 int main(int argc, char *argv[])
 {
-	static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
+	static std::string bootROM = "/home/h9lopez/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
 	//static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/DMG_ROM.bin";
 	static std::string memDumpPath = "";
 
@@ -93,9 +94,12 @@ int main(int argc, char *argv[])
 
 	auto sdlWindow = localSDLInit();
 	RAM ram;
+	BOOST_LOG_TRIVIAL(info) << "Creating SDL screen";
 	SDLScreen screen(&ram, sdlWindow, screenPalette);
+	BOOST_LOG_TRIVIAL(info) << "Created SDL screen";
 	RegBank regs;
 
+	BOOST_LOG_TRIVIAL(info) << "Showing SDL screen";
 	SDL_ShowWindow(sdlWindow);
 
 	// Add a watcher for the BTT found at range 9800-9BFF
@@ -106,6 +110,7 @@ int main(int argc, char *argv[])
 	AddressRange ob1pRange(0xFF49, 0xFF49);
 	AddressRange lcdcRange(0xFF40, 0xFF40);
 
+	BOOST_LOG_TRIVIAL(info) << "Adding segment watchers";
 	ram.addSegmentWatcher(bttRange, boost::bind(&SDLScreen::processBTTUpdate, &screen, boost::placeholders::_1, boost::placeholders::_2));
 	ram.addSegmentWatcher(wttRange, boost::bind(&SDLScreen::processWTTUpdate, &screen, boost::placeholders::_1, boost::placeholders::_2));
 	ram.addSegmentWatcher(bgpRange, boost::bind(&SDLScreen::processBGPUpdate, &screen, boost::placeholders::_1, boost::placeholders::_2));

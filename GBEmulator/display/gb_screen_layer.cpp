@@ -1,8 +1,8 @@
 #include <gb_screen_layer.h>
 #include <gb_typeutils.h>
 
-Layer::Layer(GBScreenAPI::RenderLayer layer, bool active)
-    : d_displayLayer(layer), d_isActive(active)
+Layer::Layer(GBScreenAPI::RenderLayer layer, bool active, RAM* ram)
+    : d_displayLayer(layer), d_isActive(active), d_ram(ram)
 {
     // Create our tile table
     d_layoutTable.resize(GB_TILETABLE_HEIGHT);
@@ -11,17 +11,25 @@ Layer::Layer(GBScreenAPI::RenderLayer layer, bool active)
     }
 }
 
-GridLayoutTable::const_iterator Layer::layoutGridEnd() const
+Layer::Layer()
+    : d_displayLayer(GBScreenAPI::RenderLayer::UNDEFINED), d_isActive(false), d_ram()
+{}
+
+Layer::~Layer()
+{
+}
+
+Layer::GridLayoutTable::const_iterator Layer::layoutGridEnd() const
 {
     return d_layoutTable.begin();
 }
 
-GridLayoutTable::const_iterator Layer::layoutGridBegin() const
+Layer::GridLayoutTable::const_iterator Layer::layoutGridBegin() const
 {
     return d_layoutTable.begin();
 }
 
-std::pair<size_t, size_t> layoutGridWidthHeight() const
+std::pair<size_t, size_t> Layer::layoutGridWidthHeight() const
 {
     return std::make_pair(GB_TILETABLE_WIDTH, GB_TILETABLE_HEIGHT);
 }
@@ -40,8 +48,8 @@ void Layer::updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info)
     int x,y = 0;
     for (auto i = d_dataRegionInfo.range.start; i <= d_dataRegionInfo.range.end; i+=sizeof(ByteType))
     {
-        auto& tileNum = d_ram->readByte(i);
-        auto& tile = (d_layoutTable[x][y].tile) ? d_layoutTable[x][y].tile : new DisplayTile();
+        auto tileNum = d_ram->readByte(i);
+        auto tile = (d_layoutTable[x][y]->tile) ? d_layoutTable[x][y]->tile : new DisplayTile();
         
         tile->tileReferenceNum = tileNum;
         tile->sourceRange.start = info.ingress + (tileNum * 16);

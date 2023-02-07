@@ -1,3 +1,4 @@
+#include <SDL2/SDL_render.h>
 #include <gb_sdl_screen.h>
 #include <gb_screen_api.h>
 
@@ -6,11 +7,6 @@
 #include <gb_typeutils.h>
 #include <addressrange.h>
 #include <boost/range/iterator_range.hpp>
-
-#define GB_TILETABLE_WIDTH 32
-#define GB_TILETABLE_HEIGHT 32
-#define GB_TILE_PIXEL_WIDTH 8
-#define GB_TILE_PIXEL_HEIGHT 8
 
 namespace {
     // Helper functions
@@ -41,11 +37,11 @@ GBScreenAPI::GBScreenPixelValue convertBitPairToPixelIntensityValue(uint8_t bit1
 }
 
 SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
-    : d_ram(ram), d_sdlWindow(window), d_colorPalette(palette)
+    : d_ram(ram), d_sdlWindow(window), d_colorPalette(palette), d_layerRenderer()
 {
     SDL_Color_Comp cmp;
     d_redrawMap = std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp>(cmp);
-    d_sdlRenderer = SDL_CreateRenderer(d_sdlWindow, -1, SDL_RendererFlags::SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
+    d_sdlRenderer = std::shared_ptr<SDL_Renderer>(SDL_CreateRenderer(d_sdlWindow, -1, SDL_RendererFlags::SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), SDL_DestroyRenderer);
 
     _initTileTable(d_upperTileMapRange, d_upperTileMap, d_upperTileMapLookupGrid);
     _initTileTable(d_lowerTileMapRange, d_lowerTileMap, d_lowerTileMapLookupGrid);
@@ -53,8 +49,10 @@ SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
     // Insert the tile tables as render targets
     // Initialize them both as unshown at construction time
 
-    d_backgroundLayer = Layer(GBScreenAPI::RenderLayer::BACKGROUND, false);
-    d_windowLayer = Layer(GBScreenAPI::RenderLayer::WINDOW, false);
+    BOOST_LOG_TRIVIAL(info) << "Creating Layer objects";
+    d_backgroundLayer = std::shared_ptr<Layer>(new Layer(GBScreenAPI::RenderLayer::BACKGROUND, false, d_ram));
+    d_windowLayer = std::shared_ptr<Layer>(new Layer(GBScreenAPI::RenderLayer::WINDOW, false, d_ram));
+    d_layerRenderer = LayerRenderer(d_backgroundLayer, d_sdlRenderer);
 
 }
 
@@ -68,7 +66,7 @@ void SDLScreen::_initTileTable(const AddressRange& addrRange,
         DisplayTile* tile = new DisplayTile();
 
         // Create the SDL texture and insert it into the map
-        tile->texture = SDL_CreateTexture(d_sdlRenderer, SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, GB_TILE_PIXEL_WIDTH, GB_TILE_PIXEL_HEIGHT);
+        tile->texture = SDL_CreateTexture(d_sdlRenderer.get(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, GB_TILE_PIXEL_WIDTH, GB_TILE_PIXEL_HEIGHT);
 
         layoutTable[x][y] = new DisplayGridItem{.tile = tile, .pos = new SDL_Rect{.x = x*GB_TILE_PIXEL_WIDTH, .y = y*GB_TILE_PIXEL_HEIGHT, .w = GB_TILE_PIXEL_WIDTH, .h = GB_TILE_PIXEL_HEIGHT} };
         lookupMap.insert(std::pair<Address, DisplayGridItem*>(i, d_upperTileMap[x][y]));
@@ -90,13 +88,13 @@ void SDLScreen::drawScreen() const
 
     for (auto &[layer, target] : d_renderTargets)
     {
-        auto& tileTable = target.first;
-        auto& targetActive = target.second;
+        auto& tileTable = std::get<1>(target);
+        auto& targetActive = std::get<0>(target);
         if (!targetActive) {
             continue;
         }
 
-        auto tileStart = tileTable.
+        auto tileStart = tileTable.ingress;
         int totalTiles = 0;
         for (auto i = d_upperTileMapRange.start; 
                 i < d_upperTileMapRange.end; 
@@ -108,23 +106,23 @@ void SDLScreen::drawScreen() const
             auto tile = gridItem->tile;
 
             // Sanity check the tile. If it's bad or untouched, then don't render it.
-            if (!tile->texture || tile->redrawMap.size() == 0) {
+            /*if (!tile->texture || tile->redrawMap.size() == 0) {
                 continue;
-            }
+            }*/
 
-            SDL_SetRenderTarget(d_sdlRenderer, tile->texture);
+            SDL_SetRenderTarget(d_sdlRenderer.get(), tile->texture);
             // Get draw data
-            for (auto &[color, points] : tile->redrawMap)
+            /*for (auto &[color, points] : tile->redrawMap)
             {
                 SDL_SetRenderDrawColor(d_sdlRenderer, color.r, color.g, color.b, color.a);
 
                 SDL_RenderDrawPoints(d_sdlRenderer, &points[0], points.size());
-            }
+            }*/
             
-            SDL_SetRenderTarget(d_sdlRenderer, nullptr);
-            SDL_RenderCopy(d_sdlRenderer, tile->texture, nullptr, gridItem->pos);
+            SDL_SetRenderTarget(d_sdlRenderer.get(), nullptr);
+            SDL_RenderCopy(d_sdlRenderer.get(), tile->texture, nullptr, gridItem->pos);
         }
-        SDL_RenderPresent(d_sdlRenderer);
+        SDL_RenderPresent(d_sdlRenderer.get());
 
     }
 }
@@ -259,19 +257,24 @@ void SDLScreen::processLCDCUpdate(Address addr, RAM::SegmentUpdateData data)
     // an external signal
     d_powerFlippedSignal(d_lcdcState.lcdOn);
 
-    d_backgroundLayer.
+    //d_backgroundLayer.
 
-    std::get<1>(d_renderTargets[RenderLayer::BACKGROUND]) = d_lcdcState.backgroundOn;
-    std::get<1>(d_renderTargets[RenderLayer::WINDOW]) = (d_lcdcState.backgroundOn) ? d_lcdcState.windowOn : false;
+    std::tuple<bool, GBScreenAPI::TileDataRegionInfo> background;
+    std::tuple<bool, GBScreenAPI::TileDataRegionInfo> window;
 
-    TileDataRegionInfo newTileDataRegion = {
+    std::get<0>(background) = d_lcdcState.backgroundOn;
+    std::get<0>(window) = (d_lcdcState.backgroundOn) ? d_lcdcState.windowOn : false;
+
+    GBScreenAPI::TileDataRegionInfo newTileDataRegion = {
         .range = d_lcdcState.tileDataSelect,
-        .ingress = (d_lcdcState.tileDataSelect.start == 0x8000) ? 0x8000 : 0x9000,
+        .ingress = static_cast<Address>((d_lcdcState.tileDataSelect.start == 0x8000) ? 0x8000 : 0x9000),
         .addressingMode = (d_lcdcState.tileDataSelect.start == 0x8000) ? GBScreenAPI::TileDataAddressingMode::UNSIGNED_MODE : GBScreenAPI::TileDataAddressingMode::SIGNED_MODE
     }; 
-    std::get<2>(d_renderTargets[RenderLayer::BACKGROUND]) = newTileDataRegion;
-    std::get<2>(d_renderTargets[RenderLayer::WINDOW]) = newTileDataRegion;
+    std::get<1>(background) = newTileDataRegion;
+    std::get<1>(window) = newTileDataRegion;
 
+    d_renderTargets[GBScreenAPI::RenderLayer::BACKGROUND] = background;
+    d_renderTargets[GBScreenAPI::RenderLayer::WINDOW] = window;
 }
 
 
@@ -282,13 +285,12 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
     // and create a new SDL_Texture resource if necessary
 
     // Find the associate tile data range in memory
-    auto renderer = d_sdlRenderer;
 
     //AddressRange newTileData;
     int tileNumber = (int)data.byte;
     //newTileData.start = d_tptRangeSignedIngress + (tileNumber * 16);
     //newTileData.end = newTileData.start + 16;
-    BOOST_LOG_TRIVIAL(debug) << "Determined new tile data to be at: " << std::hex << newTileData.start << ", " << std::hex << newTileData.end << " for tile number " << tileNumber;
+    //BOOST_LOG_TRIVIAL(debug) << "Determined new tile data to be at: " << std::hex << newTileData.start << ", " << std::hex << newTileData.end << " for tile number " << tileNumber;
 
     auto gridItem = findDisplayTile(addr);
     auto tile = gridItem->tile;
@@ -301,7 +303,7 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
 
 
     SDL_Texture *texture = tile->texture;
-    SDL_SetRenderTarget(renderer, texture);
+    SDL_SetRenderTarget(d_sdlRenderer.get(), texture);
 
     int row = 0;
     for (Address addr = tile->sourceRange.start; addr < tile->sourceRange.end; addr += sizeof(WordType))
@@ -315,7 +317,7 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
             auto [drawPoint, drawColor] = updatePixel;
 
             // Add to redraw list for tile
-            tile->redrawMap[drawColor].push_back(drawPoint);
+            //tile->redrawMap[drawColor].push_back(drawPoint);
             
         }
 

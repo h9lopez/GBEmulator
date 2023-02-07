@@ -1,5 +1,6 @@
 cmake_minimum_required (VERSION 3.0)
 set (CMAKE_CXX_STANDARD 14)
+set(CMAKE_VERBOSE_MAKEFILE 1)
 
 project (GBEmulator)
 
@@ -9,3 +10,6 @@ file(GLOB SOURCES "*.cpp")
 file(GLOB SOURCES "*/*.cpp")
 
 add_executable(GBEmulator ${SOURCES})
+
+target_link_libraries(GBEmulator PRIVATE
+				${Boost_LIBRARIES})

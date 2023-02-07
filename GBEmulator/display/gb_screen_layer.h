@@ -1,4 +1,4 @@
-#if !defined(GB_SCREEN_LAYER_INCLUDED)
+#ifndef GB_SCREEN_LAYER_INCLUDED
 #define GB_SCREEN_LAYER_INCLUDED
 
 #include <display/gb_screen_api.h>
@@ -16,10 +16,11 @@ private:
     GBScreenAPI::TileDataRegionInfo d_dataRegionInfo;
     GridLayoutTable d_layoutTable;
     bool d_isUpdated; // dirty flag
+    RAM* d_ram;
 
 public:
     Layer();
-    Layer(GBScreenAPI::RenderLayer layer, bool active);
+    Layer(GBScreenAPI::RenderLayer layer, bool active, RAM* ram);
     
     void updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info);
     GridLayoutTable::const_iterator layoutGridBegin() const;
@@ -28,14 +29,6 @@ public:
 
     ~Layer();
 };
-
-Layer::Layer()
-    : d_displayLayer(GBScreenAPI::RenderLayer::UNDEFINED), d_isActive(false)
-{}
-
-Layer::~Layer()
-{
-}
 
 
 

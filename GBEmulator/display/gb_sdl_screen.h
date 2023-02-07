@@ -4,11 +4,12 @@
 #include <display/gb_screen_api.h>
 #include <ram/gb_ram.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_render.h>
 #include <tuple>
 #include <gb_screen_layer.h>
 #include <gb_screen_layerrenderer.h>
 #include <gb_screen_displaytile.h>
-#include <gb_screen_displaygriditem.h
+#include <gb_screen_displaygriditem.h>
 
 struct SDL_Color_Comp : public std::binary_function<SDL_Color, SDL_Color, bool> {
     bool operator()(const SDL_Color& a, const SDL_Color& b) const { 
@@ -106,9 +107,10 @@ private:
 private:
     RAM* d_ram;
     SDL_Window* d_sdlWindow;
-    SDL_Renderer* d_sdlRenderer;
+    std::shared_ptr<SDL_Renderer> d_sdlRenderer;
     DisplayPalette d_colorPalette;
     std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp> d_redrawMap;
+    std::map<GBScreenAPI::RenderLayer, std::tuple<bool, GBScreenAPI::TileDataRegionInfo> > d_renderTargets;
 
     // External signals
     ScreenPowerFlippedSignal d_powerFlippedSignal;
@@ -132,8 +134,8 @@ private:
 
     // Layers
     LayerRenderer d_layerRenderer;
-    Layer d_backgroundLayer;
-    Layer d_windowLayer;
+    std::shared_ptr<Layer> d_backgroundLayer;
+    std::shared_ptr<Layer> d_windowLayer;
 };
 
 #endif

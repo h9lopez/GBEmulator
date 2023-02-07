@@ -10,6 +10,11 @@
 
 namespace GBScreenAPI {
 
+#define GB_TILETABLE_WIDTH 32
+#define GB_TILETABLE_HEIGHT 32
+#define GB_TILE_PIXEL_WIDTH 8
+#define GB_TILE_PIXEL_HEIGHT 8
+
 typedef enum {
     SIGNED_MODE = 0,
     UNSIGNED_MODE = 1
