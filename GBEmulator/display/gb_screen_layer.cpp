@@ -2,14 +2,22 @@
 #include <gb_typeutils.h>
 #include <gb_sdl_screen.h>
 
-Layer::Layer(GBScreenAPI::RenderLayer layer, bool active)
-    : d_displayLayer(layer), d_isActive(active)
+Layer::Layer(GBScreenAPI::RenderLayer layer, bool active, RAM* ram)
+    : d_displayLayer(layer), d_isActive(active), d_ram(ram)
 {
     // Create our tile table
     d_layoutTable.resize(GB_TILETABLE_HEIGHT);
     for (auto i = 0; i < GB_TILETABLE_HEIGHT; ++i) {
         d_layoutTable[i].resize(GB_TILETABLE_WIDTH);
     }
+}
+
+Layer::Layer()
+    : d_displayLayer(GBScreenAPI::RenderLayer::UNDEFINED), d_isActive(false), d_ram()
+{}
+
+Layer::~Layer()
+{
 }
 
 Layer::GridLayoutTable::const_iterator Layer::layoutGridEnd() const
@@ -63,8 +71,8 @@ void Layer::updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info)
     int x,y = 0;
     for (auto i = d_dataRegionInfo.range.start; i <= d_dataRegionInfo.range.end; i+=sizeof(ByteType))
     {
-        auto& tileNum = d_ram->readByte(i);
-        auto& tile = (d_layoutTable[x][y].tile) ? d_layoutTable[x][y].tile : new DisplayTile();
+        auto tileNum = d_ram->readByte(i);
+        auto tile = (d_layoutTable[x][y]->tile) ? d_layoutTable[x][y]->tile : new DisplayTile();
         
         tile->tileReferenceNum = tileNum;
         if (d_dataRegionInfo.addressingMode == GBScreenAPI::TileDataAddressingMode::SIGNED_MODE)

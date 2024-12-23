@@ -3,10 +3,12 @@ set (CMAKE_CXX_STANDARD 20)
 
 project(GBEmulator)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+list(APPEND CMAKE_PREFIX_PATH "/home/h9lopez/boost_1_81_0;/home/h9lopez/boost_1_81_0/stage/lib")
 
-FIND_PACKAGE(Boost 1.73.0 COMPONENTS log thread program_options REQUIRED)
+set(Boost_USE_STATIC_LIBS   ON)
+FIND_PACKAGE(Boost 1.81.0 COMPONENTS log thread program_options REQUIRED)
 FIND_PACKAGE(SDL2 REQUIRED)
-SET(Boost_USE_STATIC_LIBS ON)
 
 
 # Set up the core library itself for use by both the main exec and the testing project
@@ -16,7 +18,7 @@ include_directories(GBEmulator/cpu/opcodes GBEmulator/cpu GBEmulator/display GBE
     GBEmulator/registers GBEmulator/romloader GBEmulator/utils)
 include_directories(${Boost_INCLUDE_DIR})
 include_directories(${SDL2_INCLUDE_DIR})
-add_library(gbemucore ${CPP_SRC})
+add_library(gbemucore STATIC ${CPP_SRC})
 set_property(TARGET gbemucore PROPERTY CXX_STANDARD 20)
 target_link_libraries(gbemucore PRIVATE ${Boost_LIBRARIES})
 target_include_directories(gbemucore PRIVATE ${Boost_INCLUDE_DIRS})
