@@ -8,13 +8,13 @@ struct DisplayTile {
     SDL_Texture* texture;
     AddressRange sourceRange;
     // The tile number to which GB programs will refer to
-    unsigned int tileReferenceNum;
+    unsigned int referenceNum;
 
     DisplayTile()
         : texture(NULL) {}
 
     DisplayTile(const DisplayTile& t)
-        : texture(t.texture), sourceRange(t.sourceRange), tileReferenceNum(t.tileReferenceNum) {}
+        : texture(t.texture), sourceRange(t.sourceRange), referenceNum(t.referenceNum) {}
 
 };
 

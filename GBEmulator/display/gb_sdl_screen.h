@@ -8,7 +8,12 @@
 #include <gb_screen_layer.h>
 #include <gb_screen_layerrenderer.h>
 #include <gb_screen_displaytile.h>
-#include <gb_screen_displaygriditem.h
+#include <gb_screen_displaygriditem.h>
+
+#define GB_TILETABLE_WIDTH 32
+#define GB_TILETABLE_HEIGHT 32
+#define GB_TILE_PIXEL_WIDTH 8
+#define GB_TILE_PIXEL_HEIGHT 8
 
 struct SDL_Color_Comp : public std::binary_function<SDL_Color, SDL_Color, bool> {
     bool operator()(const SDL_Color& a, const SDL_Color& b) const { 

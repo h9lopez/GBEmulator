@@ -7,11 +7,6 @@
 #include <addressrange.h>
 #include <boost/range/iterator_range.hpp>
 
-#define GB_TILETABLE_WIDTH 32
-#define GB_TILETABLE_HEIGHT 32
-#define GB_TILE_PIXEL_WIDTH 8
-#define GB_TILE_PIXEL_HEIGHT 8
-
 namespace {
     // Helper functions
     ActivePalette decodePaletteData(ByteType value)

@@ -13,6 +13,7 @@ private:
 
 public:
     LayerRenderer(std::shared_ptr<Layer> layer, std::shared_ptr<SDL_Renderer> renderObj);
+    
     ~LayerRenderer();
 };
 

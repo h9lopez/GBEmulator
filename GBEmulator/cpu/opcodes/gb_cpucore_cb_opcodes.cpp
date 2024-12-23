@@ -33,6 +33,54 @@ void CPUCore::initCBOpcodes()
 			[this](){ return d_regs->C(); });
 		return OpcodeResultContext::Builder(0x01, true).ShortCycle().IncrementPCDefault().Build();
 	};
+
+	// RLC D
+	d_cbOpcodes[0x02] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->D(t); },
+			[this](){ return d_regs->D(); });
+		return OpcodeResultContext::Builder(0x02, true).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// RLC E
+	d_cbOpcodes[0x03] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->E(t); },
+			[this](){ return d_regs->E(); });
+		return OpcodeResultContext::Builder(0x03, true).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// RLC H
+	d_cbOpcodes[0x04] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->H(t); },
+			[this](){ return d_regs->H(); });
+		return OpcodeResultContext::Builder(0x04, true).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// RLC L
+	d_cbOpcodes[0x05] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->L(t); },
+			[this](){ return d_regs->L(); });
+		return OpcodeResultContext::Builder(0x05, true).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// RLC (HL)
+	d_cbOpcodes[0x06] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->HL(t); },
+			[this](){ return d_regs->HL(); });
+		return OpcodeResultContext::Builder(0x06, true).ShortCycle().IncrementPCDefault().Build();
+	};
+
+	// RLC A
+	d_cbOpcodes[0x07] = [this]() {
+		OpcodeUtils::fullRotateLeftCarry(*d_regs,
+			[this](ByteType t) { d_regs->A(t); },
+			[this](){ return d_regs->A(); });
+		return OpcodeResultContext::Builder(0x07, true).ShortCycle().IncrementPCDefault().Build();
+	};
 	
 	// BIT 0, B
 	d_cbOpcodes[0x40] = [this]() { 

@@ -1,5 +1,6 @@
 #include <gb_screen_layer.h>
 #include <gb_typeutils.h>
+#include <gb_sdl_screen.h>
 
 Layer::Layer(GBScreenAPI::RenderLayer layer, bool active)
     : d_displayLayer(layer), d_isActive(active)
@@ -11,20 +12,42 @@ Layer::Layer(GBScreenAPI::RenderLayer layer, bool active)
     }
 }
 
-GridLayoutTable::const_iterator Layer::layoutGridEnd() const
+Layer::GridLayoutTable::const_iterator Layer::layoutGridEnd() const
 {
     return d_layoutTable.begin();
 }
 
-GridLayoutTable::const_iterator Layer::layoutGridBegin() const
+Layer::GridLayoutTable::const_iterator Layer::layoutGridBegin() const
 {
     return d_layoutTable.begin();
 }
 
-std::pair<size_t, size_t> layoutGridWidthHeight() const
+std::pair<size_t, size_t> Layer::layoutGridWidthHeight() const
 {
     return std::make_pair(GB_TILETABLE_WIDTH, GB_TILETABLE_HEIGHT);
 }
+
+DisplayGridItem* Layer::layoutGridAt(int x, int y) const
+{
+    return d_layoutTable[x][y];
+}
+
+void Layer::loadNewTileAt(int x, int y, unsigned int tileNum)
+{
+    // At [x][y], overwrite the existing tileReferenceNUm and the
+    // sourceRange to correspond to the new data range
+    d_layoutTable[x][y]->tile->referenceNum = tileNum;
+    if (d_dataRegionInfo.addressingMode == GBScreenAPI::TileDataAddressingMode::SIGNED_MODE)
+    {
+        d_layoutTable[x][y]->tile->sourceRange.start = d_dataRegionInfo.ingress + (static_cast<int>(tileNum) * 16);
+    }
+    else
+    {
+        d_layoutTable[x][y]->tile->sourceRange.start = d_dataRegionInfo.ingress + (static_cast<unsigned int>(tileNum) * 16);
+    }
+    d_layoutTable[x][y]->tile->sourceRange.end = d_layoutTable[x][y]->tile->sourceRange.start + 16;
+}
+
 
 void Layer::updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info)
 {
@@ -44,7 +67,14 @@ void Layer::updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info)
         auto& tile = (d_layoutTable[x][y].tile) ? d_layoutTable[x][y].tile : new DisplayTile();
         
         tile->tileReferenceNum = tileNum;
-        tile->sourceRange.start = info.ingress + (tileNum * 16);
+        if (d_dataRegionInfo.addressingMode == GBScreenAPI::TileDataAddressingMode::SIGNED_MODE)
+        {
+            tile->sourceRange.start = info.ingress + (static_cast<int>(tileNum) * 16);
+        } 
+        else 
+        {
+            tile->sourceRange.start = info.ingress +  (static_cast<unsigned int>(tileNum) * 16);
+        }
         tile->sourceRange.end = tile->sourceRange.start + 16;
     }
 }
