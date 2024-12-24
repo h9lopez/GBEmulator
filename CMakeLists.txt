@@ -4,7 +4,7 @@ set (CMAKE_CXX_STANDARD 20)
 project(GBEmulator)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-list(APPEND CMAKE_PREFIX_PATH "/home/h9lopez/boost_1_81_0;/home/h9lopez/boost_1_81_0/stage/lib")
+list(APPEND CMAKE_PREFIX_PATH "/home/h9lopez/Downloads/boost_1_81_0;/home/h9lopez/Downloads/boost_1_81_0/stage/lib")
 
 set(Boost_USE_STATIC_LIBS   ON)
 FIND_PACKAGE(Boost 1.81.0 COMPONENTS log thread program_options REQUIRED)

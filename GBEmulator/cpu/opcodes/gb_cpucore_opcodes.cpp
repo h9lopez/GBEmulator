@@ -20,9 +20,9 @@ void CPUCore::initOpcodes()
 	// NO OP
 	d_opcodes[0x00] = [this]() { 
 		static int noop_count = 0;
-		if (noop_count > 5) {
-			throw std::runtime_error("NO OP BADSPIN");
-		}
+		// if (noop_count > 5) {
+		// 	throw std::runtime_error("NO OP BADSPIN");
+		// }
 		noop_count++;
 		return OpcodeResultContext::Builder(0x00).ShortCycle().IncrementPCDefault().Build();
 	};

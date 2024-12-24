@@ -74,7 +74,7 @@ void Layer::updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info)
         auto tileNum = d_ram->readByte(i);
         auto tile = (d_layoutTable[x][y]->tile) ? d_layoutTable[x][y]->tile : new DisplayTile();
         
-        tile->tileReferenceNum = tileNum;
+        tile->referenceNum = tileNum;
         if (d_dataRegionInfo.addressingMode == GBScreenAPI::TileDataAddressingMode::SIGNED_MODE)
         {
             tile->sourceRange.start = info.ingress + (static_cast<int>(tileNum) * 16);

@@ -125,6 +125,7 @@ int main(int argc, char *argv[])
 	}
 	else {
 		BOOST_LOG_TRIVIAL(info) << "FAILED ROM LOADING\n";
+		return EXIT_FAILURE;
 	}
 
 	Core::CPUCore core(ram, regs);

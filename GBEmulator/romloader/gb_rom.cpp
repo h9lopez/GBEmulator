@@ -1,6 +1,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <cerrno>
 #include <fstream>
 #include "gb_rom.h"
 
@@ -12,7 +13,13 @@ bool ROMLoader::fromFile(const std::string &filename, RAM &ram)
 	using namespace std;
 
 	// Open file on disk
-	ifstream romFile(filename, ios::binary);
+	ifstream romFile;
+	romFile.open(filename, ios::binary);
+	if (!romFile)
+	{
+		cerr << "ERROR: Could not open ROM file, exiting. path=" << filename << ", error=" << std::strerror(errno) << "\n";
+		return false;
+	}
 
 	auto romSize = romFile.tellg();
 	romFile.seekg(0, ios::end);
@@ -32,7 +39,6 @@ bool ROMLoader::fromFile(const std::string &filename, RAM &ram)
 
 	// Read ROM from beginning to romSize, ignoring any EOF
 	std::vector<char> tempMem;
-	tempMem.reserve(static_cast<size_t>(romSize));
 
 	std::copy(std::istreambuf_iterator<char>(romFile), std::istreambuf_iterator<char>(),
 			 std::back_inserter(tempMem));

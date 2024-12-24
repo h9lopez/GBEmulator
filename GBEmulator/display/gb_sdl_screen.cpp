@@ -43,8 +43,8 @@ SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
     d_redrawMap = std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp>(cmp);
     d_sdlRenderer = std::shared_ptr<SDL_Renderer>(SDL_CreateRenderer(d_sdlWindow, -1, SDL_RendererFlags::SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), SDL_DestroyRenderer);
 
-    _initTileTable(d_upperTileMapRange, d_upperTileMap, d_upperTileMapLookupGrid);
-    _initTileTable(d_lowerTileMapRange, d_lowerTileMap, d_lowerTileMapLookupGrid);
+    _initTileTable(d_upperTileMapRange, d_upperTileMapLookupGrid);
+    _initTileTable(d_lowerTileMapRange, d_lowerTileMapLookupGrid);
 
     // Insert the tile tables as render targets
     // Initialize them both as unshown at construction time
@@ -57,7 +57,6 @@ SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
 }
 
 void SDLScreen::_initTileTable(const AddressRange& addrRange, 
-                                std::vector< std::vector<DisplayGridItem*> >&layoutTable,
                                 std::map<Address, DisplayGridItem*>& lookupMap )
 {
     int x = 0;
@@ -68,10 +67,18 @@ void SDLScreen::_initTileTable(const AddressRange& addrRange,
         // Create the SDL texture and insert it into the map
         tile->texture = SDL_CreateTexture(d_sdlRenderer.get(), SDL_PIXELFORMAT_RGBA32, SDL_TEXTUREACCESS_TARGET, GB_TILE_PIXEL_WIDTH, GB_TILE_PIXEL_HEIGHT);
 
-        layoutTable[x][y] = new DisplayGridItem{.tile = tile, .pos = new SDL_Rect{.x = x*GB_TILE_PIXEL_WIDTH, .y = y*GB_TILE_PIXEL_HEIGHT, .w = GB_TILE_PIXEL_WIDTH, .h = GB_TILE_PIXEL_HEIGHT} };
-        lookupMap.insert(std::pair<Address, DisplayGridItem*>(i, d_upperTileMap[x][y]));
+        DisplayGridItem* newItem = new DisplayGridItem{
+            .tile = tile, 
+            .pos = new SDL_Rect{
+                .x = x*GB_TILE_PIXEL_WIDTH, 
+                .y = y*GB_TILE_PIXEL_HEIGHT, 
+                .w = GB_TILE_PIXEL_WIDTH, 
+                .h = GB_TILE_PIXEL_HEIGHT
+            } 
+        };
+        lookupMap.insert(std::pair<Address, DisplayGridItem*>(i, newItem));
 
-        if (layoutTable[x][y]->tile->texture == NULL ) {
+        if (newItem->tile->texture == NULL ) {
             BOOST_LOG_TRIVIAL(error) << "SDL_Texture not created on Tile Table setup! x/y: " << x << "/" << y;
         }
 

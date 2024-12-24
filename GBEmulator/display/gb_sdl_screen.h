@@ -105,7 +105,6 @@ private:
     std::pair<AddressRange, SDL_Texture*> lookupActiveTile(const Address& address);
     DisplayGridItem* findDisplayTile(Address addr) const;
     void _initTileTable(const AddressRange& addrRange, 
-                        std::vector< std::vector<DisplayGridItem*> >&layoutTable,
                         TileTable& lookupMap );
 
 
@@ -122,9 +121,6 @@ private:
 
     AddressRange d_upperTileMapRange;
     AddressRange d_lowerTileMapRange;
-
-    std::vector< std::vector<DisplayGridItem*> > d_upperTileMap;
-    std::vector< std::vector<DisplayGridItem*> > d_lowerTileMap;
 
     TileTable d_upperTileMapLookupGrid;
     TileTable d_lowerTileMapLookupGrid;
