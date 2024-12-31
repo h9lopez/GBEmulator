@@ -114,13 +114,10 @@ private:
     std::shared_ptr<SDL_Renderer> d_sdlRenderer;
     DisplayPalette d_colorPalette;
     std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp> d_redrawMap;
-    std::map<GBScreenAPI::RenderLayer, std::tuple<bool, GBScreenAPI::TileDataRegionInfo> > d_renderTargets;
+    std::map<GBScreenAPI::RenderLayerType, std::tuple<bool, GBScreenAPI::TileDataRegionInfo> > d_renderTargets;
 
     // External signals
     ScreenPowerFlippedSignal d_powerFlippedSignal;
-
-    AddressRange d_upperTileMapRange;
-    AddressRange d_lowerTileMapRange;
 
     TileTable d_upperTileMapLookupGrid;
     TileTable d_lowerTileMapLookupGrid;

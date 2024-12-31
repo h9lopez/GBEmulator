@@ -694,7 +694,7 @@ void CPUCore::initOpcodes()
 	d_opcodes[0x76] = [this]()
 	{
 		// TODO: Decide whether to use exception or return status
-		throw std::runtime_error("JOB IS DONE");
+		//throw std::runtime_error("JOB IS DONE");
 		return OpcodeResultContext::Builder(0x76).ShortCycle().IncrementPCDefault().Build();
 	};
 

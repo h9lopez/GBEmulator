@@ -9,6 +9,9 @@
 #include <boost/range/iterator_range.hpp>
 
 namespace {
+    static const AddressRange UPPER_TILEMAP_ADDR_RANGE(0x9800, 0x9BFF);
+    static const AddressRange LOWER_TILEMAP_ADDR_RANGE(0x9C00, 0x9FFF);
+
     // Helper functions
     ActivePalette decodePaletteData(ByteType value)
     {
@@ -43,17 +46,16 @@ SDLScreen::SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette)
     d_redrawMap = std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp>(cmp);
     d_sdlRenderer = std::shared_ptr<SDL_Renderer>(SDL_CreateRenderer(d_sdlWindow, -1, SDL_RendererFlags::SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE), SDL_DestroyRenderer);
 
-    _initTileTable(d_upperTileMapRange, d_upperTileMapLookupGrid);
-    _initTileTable(d_lowerTileMapRange, d_lowerTileMapLookupGrid);
+    _initTileTable(UPPER_TILEMAP_ADDR_RANGE, d_upperTileMapLookupGrid);
+    _initTileTable(LOWER_TILEMAP_ADDR_RANGE, d_lowerTileMapLookupGrid);
 
     // Insert the tile tables as render targets
     // Initialize them both as unshown at construction time
 
     BOOST_LOG_TRIVIAL(info) << "Creating Layer objects";
-    d_backgroundLayer = std::shared_ptr<Layer>(new Layer(GBScreenAPI::RenderLayer::BACKGROUND, false, d_ram));
-    d_windowLayer = std::shared_ptr<Layer>(new Layer(GBScreenAPI::RenderLayer::WINDOW, false, d_ram));
+    d_backgroundLayer = std::shared_ptr<Layer>(new Layer(GBScreenAPI::RenderLayerType::BACKGROUND, false, d_ram));
+    d_windowLayer = std::shared_ptr<Layer>(new Layer(GBScreenAPI::RenderLayerType::WINDOW, false, d_ram));
     d_layerRenderer = LayerRenderer(d_backgroundLayer, d_sdlRenderer);
-
 }
 
 void SDLScreen::_initTileTable(const AddressRange& addrRange, 
@@ -101,10 +103,10 @@ void SDLScreen::drawScreen() const
             continue;
         }
 
-        auto tileStart = tileTable.ingress;
+        auto tileStart = tileTable.range.start;
         int totalTiles = 0;
-        for (auto i = d_upperTileMapRange.start; 
-                i < d_upperTileMapRange.end; 
+        for (auto i = UPPER_TILEMAP_ADDR_RANGE.start; 
+                i < UPPER_TILEMAP_ADDR_RANGE.end; 
                 i += sizeof(ByteType), tileStart += sizeof(ByteType) 
         )
         {
@@ -147,7 +149,11 @@ void SDLScreen::drawScreen() const
 DisplayGridItem* SDLScreen::findDisplayTile(Address addr) const {
     auto gridItemIt = d_upperTileMapLookupGrid.find(addr);
     if (gridItemIt == d_upperTileMapLookupGrid.end()) {
-        return NULL;
+        //return NULL;
+        gridItemIt = d_lowerTileMapLookupGrid.find(addr);
+        if (gridItemIt == d_lowerTileMapLookupGrid.end()) {
+            return NULL;
+        }
     }
 
     return gridItemIt->second;
@@ -274,14 +280,13 @@ void SDLScreen::processLCDCUpdate(Address addr, RAM::SegmentUpdateData data)
 
     GBScreenAPI::TileDataRegionInfo newTileDataRegion = {
         .range = d_lcdcState.tileDataSelect,
-        .ingress = static_cast<Address>((d_lcdcState.tileDataSelect.start == 0x8000) ? 0x8000 : 0x9000),
         .addressingMode = (d_lcdcState.tileDataSelect.start == 0x8000) ? GBScreenAPI::TileDataAddressingMode::UNSIGNED_MODE : GBScreenAPI::TileDataAddressingMode::SIGNED_MODE
     }; 
     std::get<1>(background) = newTileDataRegion;
     std::get<1>(window) = newTileDataRegion;
 
-    d_renderTargets[GBScreenAPI::RenderLayer::BACKGROUND] = background;
-    d_renderTargets[GBScreenAPI::RenderLayer::WINDOW] = window;
+    d_renderTargets[GBScreenAPI::RenderLayerType::BACKGROUND] = background;
+    d_renderTargets[GBScreenAPI::RenderLayerType::WINDOW] = window;
 }
 
 
@@ -300,11 +305,11 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
     //BOOST_LOG_TRIVIAL(debug) << "Determined new tile data to be at: " << std::hex << newTileData.start << ", " << std::hex << newTileData.end << " for tile number " << tileNumber;
 
     auto gridItem = findDisplayTile(addr);
-    auto tile = gridItem->tile;
-    if (tile == NULL) {
+    if (gridItem == NULL || gridItem->tile == NULL) {
         BOOST_LOG_TRIVIAL(error) << "NO display tile exists for address " << std::hex << addr;
         return;
     }
+    auto tile = gridItem->tile;
 
     //tile->sourceRange = newTileData;
 

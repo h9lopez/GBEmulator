@@ -2,7 +2,7 @@
 #include <gb_typeutils.h>
 #include <gb_sdl_screen.h>
 
-Layer::Layer(GBScreenAPI::RenderLayer layer, bool active, RAM* ram)
+Layer::Layer(GBScreenAPI::RenderLayerType layer, bool active, RAM* ram)
     : d_displayLayer(layer), d_isActive(active), d_ram(ram)
 {
     // Create our tile table
@@ -13,7 +13,7 @@ Layer::Layer(GBScreenAPI::RenderLayer layer, bool active, RAM* ram)
 }
 
 Layer::Layer()
-    : d_displayLayer(GBScreenAPI::RenderLayer::UNDEFINED), d_isActive(false), d_ram()
+    : d_displayLayer(GBScreenAPI::RenderLayerType::UNDEFINED), d_isActive(false), d_ram()
 {}
 
 Layer::~Layer()
@@ -47,11 +47,11 @@ void Layer::loadNewTileAt(int x, int y, unsigned int tileNum)
     d_layoutTable[x][y]->tile->referenceNum = tileNum;
     if (d_dataRegionInfo.addressingMode == GBScreenAPI::TileDataAddressingMode::SIGNED_MODE)
     {
-        d_layoutTable[x][y]->tile->sourceRange.start = d_dataRegionInfo.ingress + (static_cast<int>(tileNum) * 16);
+        d_layoutTable[x][y]->tile->sourceRange.start = d_dataRegionInfo.range.start + (static_cast<int>(tileNum) * 16);
     }
     else
     {
-        d_layoutTable[x][y]->tile->sourceRange.start = d_dataRegionInfo.ingress + (static_cast<unsigned int>(tileNum) * 16);
+        d_layoutTable[x][y]->tile->sourceRange.start = d_dataRegionInfo.range.start + (static_cast<unsigned int>(tileNum) * 16);
     }
     d_layoutTable[x][y]->tile->sourceRange.end = d_layoutTable[x][y]->tile->sourceRange.start + 16;
 }
@@ -77,11 +77,11 @@ void Layer::updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info)
         tile->referenceNum = tileNum;
         if (d_dataRegionInfo.addressingMode == GBScreenAPI::TileDataAddressingMode::SIGNED_MODE)
         {
-            tile->sourceRange.start = info.ingress + (static_cast<int>(tileNum) * 16);
+            tile->sourceRange.start = info.range.start + (static_cast<int>(tileNum) * 16);
         } 
         else 
         {
-            tile->sourceRange.start = info.ingress +  (static_cast<unsigned int>(tileNum) * 16);
+            tile->sourceRange.start = info.range.start +  (static_cast<unsigned int>(tileNum) * 16);
         }
         tile->sourceRange.end = tile->sourceRange.start + 16;
     }

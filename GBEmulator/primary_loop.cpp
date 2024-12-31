@@ -4,6 +4,9 @@
 #include <fstream>
 #include <thread>
 
+// Utils
+#include <utils/safequeue.h>
+
 // GB  includes
 #include <cpu/CPUCore.h>
 #include <display/gb_ascii_screen.h>
@@ -60,6 +63,7 @@ int main(int argc, char *argv[])
 	description.add_options()
 				("romPath", boost::program_options::value<std::string>(), "Set startup ROM path")
 				("memDumpPath", boost::program_options::value<std::string>(), "If set, will dump memory state post-execution of ROM completion.")
+				("step", boost::program_options::value<bool>(), "start in step mode, where you'll be dumped into a rudementary shell")
 	;
 
 	boost::program_options::variables_map vm;
@@ -131,10 +135,19 @@ int main(int argc, char *argv[])
 	Core::CPUCore core(ram, regs);
 
 
+	// Console input thread for fine grained control
+	SafeQueue<std::string> commandQueue;
+	std::thread replThread([&commandQueue]() {
+		BOOST_LOG_TRIVIAL(info) << "Launching repl thread...";
+	});
 
-	std::thread cpuThread([&core]() {
+
+	std::thread cpuThread([&core, &commandQueue]() {
 		bool cpuQuit = false;
 		while (!cpuQuit) {
+
+			// Command queue handlers here
+
 			try {
 				core.cycle();
 			}
@@ -159,7 +172,6 @@ int main(int argc, char *argv[])
 			}
 
 			screen.drawScreen();
-			SDL_Delay(16);
 		}
 	}
 
