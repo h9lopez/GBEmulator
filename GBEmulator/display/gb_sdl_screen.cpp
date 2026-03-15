@@ -2,6 +2,7 @@
 #include <gb_sdl_screen.h>
 #include <gb_screen_api.h>
 
+#include <array>
 #include <SDL2/SDL.h>
 #include <boost/log/trivial.hpp>
 #include <gb_typeutils.h>
@@ -146,10 +147,10 @@ DisplayGridItem* SDLScreen::findDisplayTile(Address addr) const {
     return gridItemIt->second;
 }
 
-std::shared_ptr<std::vector<std::tuple<SDL_Point, SDL_Color> > > decodeGBTileRow(WordType word, int rowNum, const DisplayPalette& palette)
+namespace {
+std::array<std::tuple<SDL_Point, SDL_Color>, 8> decodeGBTileRow(WordType word, int rowNum, const DisplayPalette& palette)
 {
-    // Let's allocate the vector memory here and pass it on as a shared_ptr
-    auto pixelList = std::make_shared<std::vector<std::tuple<SDL_Point, SDL_Color> > >();
+    std::array<std::tuple<SDL_Point, SDL_Color>, 8> pixelList;
 
     // Let's convert it to a word register so we can have access to high and low params
     WordRegister rowData;
@@ -170,7 +171,7 @@ std::shared_ptr<std::vector<std::tuple<SDL_Point, SDL_Color> > > decodeGBTileRow
 
         // Now, where does this pixel actually go on our screen?
         SDL_Point p = {.x = x, .y = rowNum};
-        pixelList->push_back(std::make_tuple(p, gbPixelColor));        
+        pixelList[i] = std::make_tuple(p, gbPixelColor);
 
         // Next pair
         hi = hi >> 1;
@@ -178,6 +179,7 @@ std::shared_ptr<std::vector<std::tuple<SDL_Point, SDL_Color> > > decodeGBTileRow
         ++x;
     }
     return pixelList;
+}
 }
 
 
@@ -312,7 +314,7 @@ void SDLScreen::processBTTUpdate(Address addr, RAM::SegmentUpdateData data)
         auto rowPixelList = decodeGBTileRow(memWord, row, d_colorPalette);
 
         // Go through the pixel list an dupdate
-        for (auto updatePixel : *rowPixelList)
+        for (auto updatePixel : rowPixelList)
         {
             auto [drawPoint, drawColor] = updatePixel;
 
