@@ -29,7 +29,7 @@ namespace {
 
 
 GBScreenAPI::GBScreenPixelValue convertBitPairToPixelIntensityValue(uint8_t bit1, uint8_t bit2) {
-    static const std::vector< std::vector<GBScreenAPI::GBScreenPixelValue> > _bitPairMap = {
+    static constexpr GBScreenAPI::GBScreenPixelValue _bitPairMap[2][2] = {
         { GBScreenAPI::GBScreenPixelValue::OFF , GBScreenAPI::GBScreenPixelValue::MEDIUM},
         { GBScreenAPI::GBScreenPixelValue::LOW, GBScreenAPI::GBScreenPixelValue::HIGH}
     };
