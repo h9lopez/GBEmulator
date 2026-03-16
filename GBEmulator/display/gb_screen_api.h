@@ -7,6 +7,7 @@
 #include <ram/gb_ram.h>
 #include <utils/addressrange.h>
 #include <SDL2/SDL_rect.h>
+#include <bitset>
 
 namespace GBScreenAPI {
 
