@@ -151,6 +151,7 @@ int main(int argc, char *argv[])
 	std::thread replThread([&commandQueue]() {
 		BOOST_LOG_TRIVIAL(info) << "Launching repl thread...";
 	});
+	replThread.detach();
 
 
 	std::thread cpuThread([&core, &commandQueue]() {
