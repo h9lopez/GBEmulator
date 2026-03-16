@@ -10,4 +10,4 @@ services:
     tty: true
     stdin_open: true
     working_dir: /app
-    command: air
+    command: bash -c "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=/usr/local/vcpkg/scripts/buildsystems/vcpkg.cmake && air"
