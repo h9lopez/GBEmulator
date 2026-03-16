@@ -25,6 +25,9 @@ RUN apt-get update && apt-get install -y \
 RUN git clone https://github.com/microsoft/vcpkg.git /vcpkg && \
     /vcpkg/bootstrap-vcpkg.sh
 
+# Install air for hot-reloading (standard in this workspace)
+RUN curl -sSfL https://raw.githubusercontent.com/air-verse/air/master/install.sh | sh -s -- -b /usr/local/bin
+
 # Set environment variables for Clang compiler
 ENV CC=clang
 ENV CXX=clang++
