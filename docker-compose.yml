@@ -1,0 +1,13 @@
+services:
+  dev:
+    build: .
+    volumes:
+      - .:/app
+    environment:
+      - CC=clang
+      - CXX=clang++
+    # Keeps the container running so you can exec into it
+    tty: true
+    stdin_open: true
+    working_dir: /app
+    command: bash -c "cmake -B build -S . -DCMAKE_TOOLCHAIN_FILE=/usr/local/vcpkg/scripts/buildsystems/vcpkg.cmake && air"

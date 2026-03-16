@@ -1,0 +1,12 @@
+{
+  "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+  "name": "gbemulator",
+  "version-string": "1.0.0",
+  "dependencies": [
+    "boost-log",
+    "boost-thread",
+    "boost-program-options",
+    "boost-signals2",
+    "sdl2"
+  ]
+}

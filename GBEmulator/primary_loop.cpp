@@ -54,28 +54,39 @@ SDL_Window* localSDLInit()
 
 int main(int argc, char *argv[])
 {
-	static std::string bootROM = "/home/h9lopez/Code/GBEmulator/GBEmulator_Test/ASMTest/simpleLoadTest.gb";
-	//static std::string bootROM = "/Users/hlopez34/Code/GBEmulator/GBEmulator_Test/ASMTest/DMG_ROM.bin";
+	static std::string bootROM = "";
 	static std::string memDumpPath = "";
 
 	// Load command line args
 	boost::program_options::options_description description("Allowed options");
 	description.add_options()
+				("help", "produce help message")
 				("romPath", boost::program_options::value<std::string>(), "Set startup ROM path")
 				("memDumpPath", boost::program_options::value<std::string>(), "If set, will dump memory state post-execution of ROM completion.")
 				("step", boost::program_options::value<bool>(), "start in step mode, where you'll be dumped into a rudementary shell")
 	;
 
 	boost::program_options::variables_map vm;
-	boost::program_options::store(boost::program_options::parse_command_line(argc,argv,description), vm);
-	boost::program_options::notify(vm);
+	try {
+		boost::program_options::store(boost::program_options::parse_command_line(argc, argv, description), vm);
+		boost::program_options::notify(vm);
+	} catch (const boost::program_options::error& e) {
+		std::cerr << "Error parsing command line arguments: " << e.what() << "\n";
+		std::cout << description << "\n";
+		return 1;
+	}
+
+	if (vm.count("help")) {
+		std::cout << description << "\n";
+		return 0;
+	}
 
 	if (vm.count(ARG_ROM_PATH)) {
 		bootROM = vm[ARG_ROM_PATH].as< string >();
 	}
-	else
+	else if (bootROM.empty())
 	{
-		BOOST_LOG_TRIVIAL(error) << "No boot rom path provided";
+		BOOST_LOG_TRIVIAL(error) << "No boot rom path provided. Use --romPath <path> to specify one.";
 		return -1;
 	}
 	if (vm.count(ARG_MEM_DUMP_PATH)) {

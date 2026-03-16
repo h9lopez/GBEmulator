@@ -1,70 +1,53 @@
-cmake_minimum_required (VERSION 3.17)
-set (CMAKE_CXX_STANDARD 20)
+cmake_minimum_required(VERSION 3.17)
 
 project(GBEmulator)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-list(APPEND CMAKE_PREFIX_PATH "/home/h9lopez/Downloads/boost_1_81_0;/home/h9lopez/Downloads/boost_1_81_0/stage/lib")
 
-set(Boost_USE_STATIC_LIBS   ON)
-FIND_PACKAGE(Boost 1.81.0 COMPONENTS log thread program_options REQUIRED)
-FIND_PACKAGE(SDL2 REQUIRED)
 
+# If compiling with Clang on a Linux system, linking libc++ might require specific flags
+# or cause issues if the dependencies (like Boost/SDL) were built with libstdc++.
+# In vcpkg, packages are built with the default system library (libstdc++ on Linux).
+# Therefore, forcing libc++ will lead to linker errors. Let's not force it.
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND APPLE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")
+endif()
+
+find_package(Boost REQUIRED COMPONENTS log thread program_options)
+find_package(SDL2 CONFIG REQUIRED)
 
 # Set up the core library itself for use by both the main exec and the testing project
-file(GLOB CPP_SRC "GBEmulator/*/*/*.cpp" "GBEmulator/*/*.cpp" "GBEmulator/*.cpp")
-include_directories(GBEmulator)
-include_directories(GBEmulator/cpu/opcodes GBEmulator/cpu GBEmulator/display GBEmulator/ram
-    GBEmulator/registers GBEmulator/romloader GBEmulator/utils)
-include_directories(${Boost_INCLUDE_DIR})
-include_directories(${SDL2_INCLUDE_DIR})
+set(CPP_SRC
+    GBEmulator/cpu/CPUCore.cpp
+    GBEmulator/cpu/opcodes/OpcodeResultContext.cpp
+    GBEmulator/cpu/opcodes/gb_cpucore_cb_opcodes.cpp
+    GBEmulator/cpu/opcodes/gb_cpucore_opcode_utils.cpp
+    GBEmulator/cpu/opcodes/gb_cpucore_opcodes.cpp
+    GBEmulator/display/gb_ascii_screen.cpp
+    GBEmulator/display/gb_screen_api.cpp
+    GBEmulator/display/gb_screen_layer.cpp
+    GBEmulator/display/gb_screen_layerrenderer.cpp
+    GBEmulator/display/gb_sdl_screen.cpp
+    GBEmulator/ram/gb_ram.cpp
+    GBEmulator/registers/gb_regs.cpp
+    GBEmulator/romloader/gb_rom.cpp
+)
+
 add_library(gbemucore STATIC ${CPP_SRC})
-set_property(TARGET gbemucore PROPERTY CXX_STANDARD 20)
-target_link_libraries(gbemucore PRIVATE ${Boost_LIBRARIES})
-target_include_directories(gbemucore PRIVATE ${Boost_INCLUDE_DIRS})
-#target_compile_definitions(gbemucore PRIVATE BOOST_LOG_DYN_LINK)
-#target_link_libraries(gbemucore boost_log pthread)
+target_include_directories(gbemucore PUBLIC
+    GBEmulator
+    GBEmulator/cpu/opcodes
+    GBEmulator/cpu
+    GBEmulator/display
+    GBEmulator/ram
+    GBEmulator/registers
+    GBEmulator/romloader
+    GBEmulator/utils
+)
 
-
-# # thehandler tool
-# include_directories(thehandler)
-# file(GLOB HANDLER_CPP_SRC "thehandler/*.cpp")
-# add_executable(thehandler ${HANDLER_CPP_SRC})
-# target_include_directories(thehandler PRIVATE thehandler)
-# target_link_libraries(thehandler
-#     gbemucore
-#     ${Boost_LIBRARIES}
-#     ${Boost_LOG_LIBRARY}
-#     ${Boost_PROGRAM_OPTIONS_LIBRARY}
-#     ${Boost_THREAD_LIBRARY}
-# )
-
-# Configure the testing target
-# enable_testing()
-# find_package(GTest REQUIRED)
-# include_directories(${GTEST_INCLUDE_DIRS})
-
-# set(TEST_CPP_SRC GBEmulator_Test/GBEmulator_Test.gen.cpp)
-# add_executable(gbemutest ${TEST_CPP_SRC})
-# target_include_directories(gbemutest PRIVATE GBEmulator_Test)
-# target_link_libraries(gbemutest 
-#     gbemucore
-#     ${GTEST_BOTH_LIBRARIES}
-#     ${Boost_LIBRARIES}
-#     ${Boost_LOG_LIBRARY}
-#     ${Boost_PROGRAM_OPTIONS_LIBRARY}
-#     ${Boost_THREAD_LIBRARY}
-#     )
-
-# TODO: Add workaround that has each GTest as its own test within ctest
-# add_test(AllTests gbemutest)
+target_link_libraries(gbemucore PUBLIC Boost::log Boost::thread Boost::program_options SDL2::SDL2)
 
 # Create the actual core runnable
 add_executable(gbemu GBEmulator/primary_loop.cpp)
-target_include_directories(gbemu PRIVATE ${Boost_INCLUDE_DIRS})
-#set_property(TARGET gbemu PROPERTY CXX_STANDARD 20)
-target_link_libraries(gbemu PRIVATE 
-                            gbemucore
-                            ${Boost_LIBRARIES}
-                            SDL2::SDL2main SDL2::SDL2-static)
-#target_compile_definitions(gbemu PRIVATE BOOST_LOG_DYN_LINK)
+target_link_libraries(gbemu PRIVATE gbemucore)
