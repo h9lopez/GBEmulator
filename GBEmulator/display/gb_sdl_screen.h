@@ -16,7 +16,7 @@
 #define GB_TILE_PIXEL_WIDTH 8
 #define GB_TILE_PIXEL_HEIGHT 8
 
-struct SDL_Color_Comp : public std::binary_function<SDL_Color, SDL_Color, bool> {
+struct SDL_Color_Comp {
     bool operator()(const SDL_Color& a, const SDL_Color& b) const { 
         return std::tie(a.r, a.g, a.b, a.a) < std::tie(b.r, b.g, b.b, b.a);
     }

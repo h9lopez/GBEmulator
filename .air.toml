@@ -1,0 +1,30 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "build"
+
+[build]
+  # cmd is the build command triggered on change
+  cmd = "cmake --build build -j$(nproc)"
+  # bin is the path to the compiled binary (used by full_bin)
+  bin = "build/gbemu"
+  # full_bin is how you want to run the binary after a successful build
+  # Note: This will attempt to run the emulator. If you just want it to build, 
+  # you can set this to "true" or a no-op.
+  full_bin = "true"
+  delay = 500
+  exclude_dir = ["build", "vcpkg_installed", ".git", ".vscode"]
+  include_ext = ["cpp", "h", "hpp", "c", "txt", "json"]
+  stop_on_error = true
+  log = "air.log"
+
+[log]
+  time = false
+
+[color]
+  main = "magenta"
+  watcher = "cyan"
+  build = "yellow"
+  runner = "green"
+
+[misc]
+  clean_on_exit = false
