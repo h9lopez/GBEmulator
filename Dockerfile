@@ -1,3 +1,5 @@
+FROM cosmtrek/air:latest AS air-builder
+
 FROM ubuntu:latest
 
 # Set noninteractive installation to avoid tzdata prompts
@@ -25,8 +27,8 @@ RUN apt-get update && apt-get install -y \
 RUN git clone https://github.com/microsoft/vcpkg.git /vcpkg && \
     /vcpkg/bootstrap-vcpkg.sh
 
-# Install air for hot-reloading (standard in this workspace)
-RUN curl -sSfL https://raw.githubusercontent.com/air-verse/air/master/install.sh | sh -s -- -b /usr/local/bin
+# Install air for hot-reloading using multi-stage copy (no curl/sh required)
+COPY --from=air-builder /go/bin/air /usr/local/bin/air
 
 # Set environment variables for Clang compiler
 ENV CC=clang
