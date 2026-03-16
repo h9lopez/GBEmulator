@@ -11,12 +11,3 @@ services:
     stdin_open: true
     working_dir: /app
     command: air
-    develop:
-      watch:
-        - path: .
-          action: sync
-          target: /app
-          ignore:
-            - build/
-            - vcpkg_installed/
-            - .git/
