@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+
 # If compiling with Clang on a Linux system, linking libc++ might require specific flags
 # or cause issues if the dependencies (like Boost/SDL) were built with libstdc++.
 # In vcpkg, packages are built with the default system library (libstdc++ on Linux).

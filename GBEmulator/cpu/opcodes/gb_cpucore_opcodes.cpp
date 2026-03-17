@@ -20,9 +20,9 @@ void CPUCore::initOpcodes()
 	// NO OP
 	d_opcodes[0x00] = [this]() { 
 		static int noop_count = 0;
-		if (noop_count > 5) {
-			throw std::runtime_error("NO OP BADSPIN");
-		}
+		// if (noop_count > 5) {
+		// 	throw std::runtime_error("NO OP BADSPIN");
+		// }
 		noop_count++;
 		return OpcodeResultContext::Builder(0x00).ShortCycle().IncrementPCDefault().Build();
 	};
@@ -694,7 +694,7 @@ void CPUCore::initOpcodes()
 	d_opcodes[0x76] = [this]()
 	{
 		// TODO: Decide whether to use exception or return status
-		throw std::runtime_error("JOB IS DONE");
+		//throw std::runtime_error("JOB IS DONE");
 		return OpcodeResultContext::Builder(0x76).ShortCycle().IncrementPCDefault().Build();
 	};
 

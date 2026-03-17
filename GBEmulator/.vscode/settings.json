@@ -45,5 +45,8 @@
         "xtr1common": "cpp",
         "xtree": "cpp",
         "xutility": "cpp"
-    }
+    },
+    "cmake.configureSettings": {
+        "CMAKE_TOOLCHAIN_FILE": "/Users/hlopez34/Downloads/vcpkg/scripts/buildsystems/vcpkg.cmake"
+      }
 }

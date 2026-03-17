@@ -11,7 +11,7 @@ public:
     typedef std::vector< std::vector<DisplayGridItem*> > GridLayoutTable;
 
 private:
-    GBScreenAPI::RenderLayer d_displayLayer;
+    GBScreenAPI::RenderLayerType d_displayLayer;
     bool d_isActive;
     GBScreenAPI::TileDataRegionInfo d_dataRegionInfo;
     GridLayoutTable d_layoutTable;
@@ -20,7 +20,7 @@ private:
 
 public:
     Layer();
-    Layer(GBScreenAPI::RenderLayer layer, bool active, RAM* ram);
+    Layer(GBScreenAPI::RenderLayerType layer, bool active, RAM* ram);
     
     void updateSourceRegionInfo(const GBScreenAPI::TileDataRegionInfo& info);
     void loadNewTileAt(int x, int y, unsigned int tileNum);

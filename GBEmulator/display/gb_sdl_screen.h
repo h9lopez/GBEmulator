@@ -105,7 +105,6 @@ private:
     std::pair<AddressRange, SDL_Texture*> lookupActiveTile(const Address& address);
     DisplayGridItem* findDisplayTile(Address addr) const;
     void _initTileTable(const AddressRange& addrRange, 
-                        std::vector< std::vector<DisplayGridItem*> >&layoutTable,
                         TileTable& lookupMap );
 
 
@@ -115,16 +114,10 @@ private:
     std::shared_ptr<SDL_Renderer> d_sdlRenderer;
     DisplayPalette d_colorPalette;
     std::map<SDL_Color, std::vector<SDL_Point>, SDL_Color_Comp> d_redrawMap;
-    std::map<GBScreenAPI::RenderLayer, std::tuple<bool, GBScreenAPI::TileDataRegionInfo> > d_renderTargets;
+    std::map<GBScreenAPI::RenderLayerType, std::tuple<bool, GBScreenAPI::TileDataRegionInfo> > d_renderTargets;
 
     // External signals
     ScreenPowerFlippedSignal d_powerFlippedSignal;
-
-    AddressRange d_upperTileMapRange;
-    AddressRange d_lowerTileMapRange;
-
-    std::vector< std::vector<DisplayGridItem*> > d_upperTileMap;
-    std::vector< std::vector<DisplayGridItem*> > d_lowerTileMap;
 
     TileTable d_upperTileMapLookupGrid;
     TileTable d_lowerTileMapLookupGrid;

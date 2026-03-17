@@ -25,12 +25,11 @@ typedef enum {
     WINDOW,
     BACKGROUND,
     UNDEFINED
-} RenderLayer;
+} RenderLayerType;
 
 typedef struct
 {
     AddressRange range;
-    Address ingress;
     TileDataAddressingMode addressingMode;
 } TileDataRegionInfo;
 
