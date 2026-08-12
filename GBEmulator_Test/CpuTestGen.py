@@ -208,7 +208,7 @@ class SingleOpcodeTest(object):
         # First, the standard oens.
         replaceMap = {
             'test_name': self.opcode + "_" + str(random.randint(1,100)),
-            'romData': ", ".join(['0x%02x' % ord(x) for x in self.sequence]),
+            'romData': ", ".join(['0x%02x' % (x if isinstance(x, int) else ord(x)) for x in self.sequence]),
             'cycleAmount': self.cycles,
             'flagAsserts': self._buildFlagAsserts(),
             'preRegSets': self._buildRegSets('regs', self.startingState["regs"]),
@@ -236,23 +236,23 @@ def main():
 
     # Generate single opcodes tests
     for test in filData["single_opcode"]["tests"]:
-        print "*****Beginning parsing for opcode {op}".format(op=test["opcode"])
-        print "\t- Validating------",
+        print("*****Beginning parsing for opcode {op}".format(op=test["opcode"]))
+        print("\t- Validating------", end="")
         validator = JSONValidator(SingleOpcodeTest())
         validateRes = validator.populateTest(test)
         if validateRes == False:
-            print "ERROR: Could not parse test-> " + str(test)
+            print("ERROR: Could not parse test-> " + str(test))
             break
         else:
-            print "\t[OK]"
+            print("\t[OK]")
         # If succeeds, the return type is of type SingleOpcodeTest
         testObj = validateRes
 
         processed_opcodes.append( testObj.opcode )
         
-        print "\t- Generating CPP------",
+        print("\t- Generating CPP------", end="")
         resultingCode += testObj.generateCpp() + "\n\n"
-        print "\t[OK]"
+        print("\t[OK]")
         
 
     # Output generated code to file.
@@ -267,8 +267,8 @@ def main():
             "int main(int argc, char *argv[])\n{\n\ttesting::InitGoogleTest(&argc, argv);\n\tRUN_ALL_TESTS();\n\tstd::getchar();\n    return 0;\n}"
         ])
 
-    print "Processed opcodes: "
-    print str(processed_opcodes)
+    print("Processed opcodes: ")
+    print(str(processed_opcodes))
 
 
 

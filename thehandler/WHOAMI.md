@@ -1,1 +1,0 @@
-Tool for surrounding program executions with pre-condition, post-condition register, CPU checks for validating baseline programs. Meant for integration testing. Possibly paving the way for break points and debugging.

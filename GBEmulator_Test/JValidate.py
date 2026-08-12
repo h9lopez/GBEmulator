@@ -94,7 +94,7 @@ class JSONValidator(object):
         try:
             return hex(int(op, 16))
         except Exception as e:
-            print "Could not validate hex object " + str(op)
+            print("Could not validate hex object " + str(op))
             raise e
         return False
 
@@ -106,7 +106,7 @@ class JSONValidator(object):
         try:
             return [ FLAG_VAL_MAP[x] for x in flagArray ]
         except Exception as e:
-            print "Could not validate flags " + str(flagArray)
+            print("Could not validate flags " + str(flagArray))
             raise e
         return False
     
@@ -116,14 +116,14 @@ class JSONValidator(object):
         """
         if type(sequence) == type([]):
             try:
-                return [ x.decode("hex") for x in sequence ]
+                return [ bytes.fromhex(x)[0] for x in sequence ]
             except Exception as e:
                 raise e
-        elif type(sequence) == type(u""):
+        elif type(sequence) == type(""):
             try:
-                return list(sequence.decode("hex"))
+                return list(bytes.fromhex(sequence))
             except Exception as e:
-                print "Sequence " + str(sequence)
+                print("Sequence " + str(sequence))
                 raise Exception("Failed on validating string sequence of {seq}, excp={exc}".format(seq=str(sequence), exc=str(e)))
         
         return False
@@ -136,7 +136,7 @@ class JSONValidator(object):
         try:
             return int(cycles)
         except Exception as e:
-            print "Error validating number of cycles " + str(cycles)
+            print("Error validating number of cycles " + str(cycles))
             raise e
         return False
 
@@ -150,13 +150,13 @@ class JSONValidator(object):
 
         # Test whether there are duplicate items
         if len(regKeys) != len(regs.keys()):
-            print "Duplicate regs in set"
+            print("Duplicate regs in set")
             raise Exception("Duplicate regs")
         
         # Check to see if all reg values are valid
         if not set.issubset(regKeys, VALID_REG_VALS):
-            print "Unrecognized register values in set"
-            print "\t" + str(regKeys)  
+            print("Unrecognized register values in set")
+            print("\t" + str(regKeys)  )
             raise Exception("Unrecognized register values, vals={vals}".format(str(regKeys)))
 
         # Then just set the values and return them
@@ -179,7 +179,7 @@ class JSONValidator(object):
             # Make sure it's within limit
             if realVal > MEM_UPPER_LIMIT:
                 errStr = "Memory adderss " + str(key) + " is out of bounds. (UPPER LIMIT " + str(MEM_UPPER_LIMIT) + ")"
-                print errStr
+                print(errStr)
                 raise MemoryError(errStr)
 
             # Check the value to make sure it's valid hex too
