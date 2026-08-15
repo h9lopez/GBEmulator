@@ -6,10 +6,10 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_render.h>
 #include <tuple>
-#include <gb_screen_layer.h>
-#include <gb_screen_layerrenderer.h>
-#include <gb_screen_displaytile.h>
-#include <gb_screen_displaygriditem.h>
+#include <map>
+#include <vector>
+#include <boost/signals2.hpp>
+#include <boost/log/trivial.hpp>
 
 #define GB_TILETABLE_WIDTH 32
 #define GB_TILETABLE_HEIGHT 32
@@ -23,9 +23,6 @@ struct SDL_Color_Comp {
 };
 
 struct DisplayPalette {
-    // Kinda nasty to have them predefined. Should make it all - including 
-    // declarations config based
-    // TODO: Drive declarations off of config file
     SDL_Color offVal;
     SDL_Color lowVal;
     SDL_Color medVal;
@@ -74,14 +71,11 @@ struct ActivePalette {
     {}
 };
 
-
 class SDLScreen
 {
 public:
-
     typedef boost::signals2::signal<void(bool)> ScreenPowerFlippedSignal;
     typedef boost::signals2::signal<void(bool)> ScreenPowerFlippedSlot;
-    typedef std::map<Address, DisplayGridItem*> TileTable;
 
     SDLScreen(RAM* ram, SDL_Window* window, DisplayPalette palette);
     void drawScreen() const;
@@ -91,22 +85,13 @@ public:
     void processVRAMUpdate(Address addr, RAM::SegmentUpdateData data);
     void processBTTUpdate(Address addr, RAM::SegmentUpdateData data);
     void processWTTUpdate(Address addr, RAM::SegmentUpdateData data);
-    // attached to FF47 IO port
     void processBGPUpdate(Address addr, RAM::SegmentUpdateData data);
-    // FF48
     void processOBP0Update(Address addr, RAM::SegmentUpdateData data);
-    // FF49
     void processOBP1Update(Address addr, RAM::SegmentUpdateData data);
     void processLCDCUpdate(Address addr, RAM::SegmentUpdateData data);
 
     // Signals
     void watchScreenPower(ScreenPowerFlippedSlot watcher);
-private:
-    std::pair<AddressRange, SDL_Texture*> lookupActiveTile(const Address& address);
-    DisplayGridItem* findDisplayTile(Address addr) const;
-    void _initTileTable(const AddressRange& addrRange, 
-                        TileTable& lookupMap );
-
 
 private:
     RAM* d_ram;
@@ -119,9 +104,6 @@ private:
     // External signals
     ScreenPowerFlippedSignal d_powerFlippedSignal;
 
-    TileTable d_upperTileMapLookupGrid;
-    TileTable d_lowerTileMapLookupGrid;
-
     // Active palettes
     ActivePalette d_backgroundPalette;
     ActivePalette d_spritePalette0;
@@ -129,11 +111,6 @@ private:
 
     // Active LCDC State
     GBScreenAPI::LCDCState d_lcdcState;
-
-    // Layers
-    LayerRenderer d_layerRenderer;
-    std::shared_ptr<Layer> d_backgroundLayer;
-    std::shared_ptr<Layer> d_windowLayer;
 };
 
 #endif

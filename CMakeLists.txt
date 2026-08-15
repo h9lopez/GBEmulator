@@ -24,10 +24,7 @@ set(CPP_SRC
     GBEmulator/cpu/opcodes/gb_cpucore_cb_opcodes.cpp
     GBEmulator/cpu/opcodes/gb_cpucore_opcode_utils.cpp
     GBEmulator/cpu/opcodes/gb_cpucore_opcodes.cpp
-    GBEmulator/display/gb_ascii_screen.cpp
     GBEmulator/display/gb_screen_api.cpp
-    GBEmulator/display/gb_screen_layer.cpp
-    GBEmulator/display/gb_screen_layerrenderer.cpp
     GBEmulator/display/gb_sdl_screen.cpp
     GBEmulator/ram/gb_ram.cpp
     GBEmulator/registers/gb_regs.cpp

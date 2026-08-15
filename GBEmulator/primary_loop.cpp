@@ -9,7 +9,6 @@
 
 // GB  includes
 #include <cpu/CPUCore.h>
-#include <display/gb_ascii_screen.h>
 #include <display/gb_sdl_screen.h>
 #include <romloader/gb_rom.h>
 
